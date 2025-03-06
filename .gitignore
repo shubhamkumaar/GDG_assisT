@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+/myenv/
+venv/
+.env
+.venv
+
+# FastAPI & Python dependencies
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Environment variables
+.env
+*.env
+
+# Logs & Debugging
+logs/
+*.log
+debug.log
+
+# Cache files
+*.sqlite3
+*.db
+*.pyo
+*.pyd
+*.pyc
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
