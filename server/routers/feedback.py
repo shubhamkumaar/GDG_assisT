@@ -1,10 +1,17 @@
 from fastapi import Form, APIRouter 
 from typing import Annotated
 from pydantic import BaseModel
-import os
 from google import genai
+from functools import lru_cache
+from server import config
 
 router = APIRouter()
+
+@lru_cache
+def get_settings():
+    return config.Settings()
+
+Settings = get_settings()
 # Taking the question, answer and keypoints as input
 class FormData(BaseModel):
     question: str
@@ -12,7 +19,7 @@ class FormData(BaseModel):
     keypoints: str
 
 # Creating a client object
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=Settings.GENAI_API_KEY)
 
 # Endpoint to give feedback
 @router.post("/feedback")

@@ -1,12 +1,21 @@
 import os
 import io
+from functools import lru_cache
+from server import config
 from typing import Annotated
 from mistralai import Mistral
 from fastapi import APIRouter,File, UploadFile
 
 router = APIRouter()
 
-api_key = os.getenv('MISTRAL_API_KEY')
+@lru_cache
+def get_settings():
+    return config.Settings()
+
+Settings = get_settings()
+
+    
+api_key =Settings.MISTRAL_API_KEY
 client = Mistral(api_key=api_key)
 
 async def ocrResponse():
@@ -14,7 +23,7 @@ async def ocrResponse():
     uploaded_pdf = client.files.upload(
         file={
             "file_name": "uploaded_file.pdf",
-            "content": open("./uploads/uploaded_file.pdf","rb"),
+            "content": open("./public/uploaded_file.pdf","rb"),
         },
         purpose="ocr"
     )     
