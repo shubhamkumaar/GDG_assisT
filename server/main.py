@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import feedback, checkAnswer
+from .routers import feedback, checkAnswer
 app = FastAPI()
 
 app.include_router(feedback.router)
