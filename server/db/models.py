@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from .database import Base
+import uuid
+import base64
 
 class User(Base):
     __tablename__ = 'users'
@@ -17,24 +19,25 @@ class Teachers(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
-    registration_number = Column(String,unique=True)
-    class_id = Column(Integer, ForeignKey('classes.id'))
+    class_id = Column(String(6), ForeignKey('classes.id'))
 
 class Students(Base):
     __tablename__ = 'students'
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
-    registration_number = Column(String,unique=True)
-    class_id = Column(Integer, ForeignKey('classes.id'))
+    class_id = Column(String(6), ForeignKey('classes.id'))
     submissions_id = Column(Integer, ForeignKey('submissions.id'))
+
+
+def generate_uuid_code():
+    return base64.urlsafe_b64encode(uuid.uuid4().bytes).decode()[:6]
 
 class Classes(Base):
     __tablename__ = 'classes'
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(6), primary_key=True, unique=True, index=True, default=generate_uuid_code)
     class_name = Column(String)
-    class_code = Column(String,unique=True)
     class_description = Column(String)
     teacher_id = Column(Integer, ForeignKey('teachers.id'))
     students_id = Column(Integer,ForeignKey('students.id'))    
@@ -47,7 +50,9 @@ class Assignments(Base):
     assignment_name = Column(String)
     assignment_description = Column(String)
     assignment_deadline = Column(DateTime)
-    class_id = Column(Integer, ForeignKey('classes.id'))
+    assignment_file = Column(String)
+    key_answer = Column(String)
+    class_id = Column(String(6), ForeignKey('classes.id'))
 
 class Submissions(Base):
     __tablename__ = 'submissions'
@@ -56,4 +61,4 @@ class Submissions(Base):
     submission_file = Column(String)
     submission_date = Column(DateTime)
     student_id = Column(Integer, ForeignKey('students.id'))
-    assignment_id = Column(Integer, ForeignKey('assignments.id'))    
+    assignment_id = Column(Integer, ForeignKey('assignments.id'))  

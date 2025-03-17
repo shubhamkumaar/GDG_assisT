@@ -2,9 +2,8 @@ import os
 import io
 from functools import lru_cache
 from server import config
-from typing import Annotated
 from mistralai import Mistral
-from fastapi import APIRouter,File, UploadFile
+from fastapi import APIRouter, UploadFile
 
 router = APIRouter()
 

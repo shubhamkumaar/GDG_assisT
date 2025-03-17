@@ -7,7 +7,8 @@ import server.db.models as models
 from sqlalchemy.orm import Session
 from typing import List, Annotated
 from datetime import datetime, timedelta, timezone
-
+from functools import lru_cache
+from server import config
 from jose import jwt,JWTError
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
@@ -17,9 +18,15 @@ router = APIRouter(
     tags=["auth"],
 )
 
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+@lru_cache
+def get_settings():
+    return config.Settings()
+
+Settings = get_settings()
+
+SECRET_KEY = Settings.SECRET_KEY
+ALGORITHM = Settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = Settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
@@ -51,7 +58,21 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.post("/",status_code=status.HTTP_201_CREATED)
 async def create_user(user: User,db: db_dependency):
-
+    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+    print(db_user)
+    if db_user :
+        raise HTTPException(
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED,
+            detail = "Email already exists",
+            headers={"WWW-Authenticate": "Bearer"}
+        ) 
+    db_user = db.query(models.User).filter(models.User.phone == user.phone).first()
+    if db_user :
+        raise HTTPException(
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED,
+            detail = "Phone number already exists",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
     db_user = models.User(
         name = user.name,
         email = user.email,
@@ -59,17 +80,34 @@ async def create_user(user: User,db: db_dependency):
         is_teacher = user.is_teacher,
         password=bcrypt_context.hash(user.password)
     )
-    db.add(db_user)
+    db.add(db_user)    
     db.commit()
     db.refresh(db_user)
-    content = {"user": db_user}
+
+    # Making a teacher or student based on the user input
+    if user.is_teacher:
+        db_teacher = models.Teachers(
+            user_id = db_user.id
+        )
+        db.add(db_teacher)
+    else :
+        db_student = models.Students(
+            user_id = db_user.id
+        )
+        db.add(db_student)
+    db.commit()    
+    content = {"name": db_user.name, "email": db_user.email, "phone": db_user.phone, "is_teacher": db_user.is_teacher}
     response = JSONResponse(content=content)
     response.set_cookie(key="user_id", value=str(db_user.id))
     response.set_cookie(key="user_name", value=db_user.name)
     response.set_cookie(key="user_email", value=db_user.email)
     response.set_cookie(key="user_phone", value=db_user.phone)
     response.set_cookie(key="is_teacher", value=db_user.is_teacher)
-    return response
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        db_user.email,db_user.id, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data:Annotated[OAuth2PasswordRequestForm,Depends()],db: db_dependency):
