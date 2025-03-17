@@ -1,0 +1,6 @@
+fastapi
+pydantic-settings
+pydantic
+uvicorn
+google-genai
+mistralai
