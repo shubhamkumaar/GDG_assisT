@@ -1,13 +1,23 @@
-pip install google-genai
-pip install fastapi
+# Setup Environment
+- Change directory to backend `cd server`
+- Install necessary packages `pip install -r requirements.txt`
+- Create an .env file based on the .env.example in the `server` folder
 
-### pip install "passlib[bcrypt]"     
-### pip install "python-jose[cryptography]"
-### pip install mistralai
-sqlalchemy
-psycopg2
+# Usage
+- Make sure you are in the root directory of the repo
+- Start running dev mode using `uvicorn --reload server.main:app`
 
-pip install pyjwt
+# Tech Stack
+## Backend
+- FastAPI
+- SQLAlchemy
+- Pydantic
+- PostgreSQL
+- Google Gemini
+- Mistral AI
+- Cloudinary
+- GCP
 
-pip install bcrypt==3.2.0
-
+## Frontend
+- React
+- NextJS
