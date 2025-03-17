@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
-from server.db.database import engine, SessionLocal
+from server.db.database import engine, get_db
 import server.db.models as models
 from sqlalchemy.orm import Session
 from typing import List, Annotated
@@ -13,10 +13,7 @@ from jose import jwt,JWTError
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 
-router = APIRouter(
-    prefix="/auth",
-    tags=["auth"],
-)
+router = APIRouter()
 
 @lru_cache
 def get_settings():
@@ -29,7 +26,7 @@ ALGORITHM = Settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = Settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="login")
 
 class User(BaseModel):
     name: str
@@ -46,17 +43,9 @@ class Token(BaseModel):
 # DB Models
 models.Base.metadata.create_all(bind=engine)
 
-# DB Connection
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 db_dependency = Annotated[Session, Depends(get_db)]
 
-@router.post("/",status_code=status.HTTP_201_CREATED)
+@router.post("/signup",status_code=status.HTTP_201_CREATED)
 async def create_user(user: User,db: db_dependency):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     print(db_user)
@@ -109,7 +98,7 @@ async def create_user(user: User,db: db_dependency):
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/token", response_model=Token)
+@router.post("/login", response_model=Token)
 async def login_for_access_token(form_data:Annotated[OAuth2PasswordRequestForm,Depends()],db: db_dependency):
     user = authenticate_user(form_data.username, form_data.password,db)
     if not user:

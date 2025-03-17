@@ -9,13 +9,10 @@ router = APIRouter(
     prefix="/teacher",
     tags=["teacher"],
 )
+
 # DB Connection
-
-
 db_dependency = Annotated[Session, Depends(get_db)]
-
 user_dependency = Annotated[models.User, Depends(get_current_user)] 
-
 
 @router.post("/create_class",status_code=status.HTTP_201_CREATED)
 async def create_class(user:user_dependency,class_name: str, class_description: str, db: db_dependency) :
