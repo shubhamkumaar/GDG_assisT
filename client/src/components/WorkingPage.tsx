@@ -1,34 +1,41 @@
-import ClassBox from "./ClassBox";
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+
+
+import HomePage from './HomePage';
 import JoinClass from "./JoinClass";
+import FeedbackPage from './FeedbackPage';
+import ProfilePage from './ProfilePage';
+import TodoPage from './TodoPage';
+import ResultPage from './ResultPage';
 
 export default function WorkingPage() {
+
+  const pageValue = useSelector((state: RootState) => state.workingPage.pageName)
+  const isJoining = useSelector((state: RootState) => state.joinPage.isJoining)
 
     return (
       <>
       <div className='bg-[#F2F4F8] w-full h-screen'>
 
-        <div className='flex flex-row flex-wrap items-Start justify-start overflow-y-auto h-full pb-12'>
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-          <ClassBox />
-        </div>
+      {(() => {
+        switch (pageValue) {
+          case 'Home':
+            return <HomePage />;
+          case 'Result':
+            return <ResultPage />;
+          case 'Todo':
+            return <TodoPage />;
+          case 'Feedback':
+            return <FeedbackPage />;
+          case 'Profile':
+            return <ProfilePage />;
+        }
+      })()}
 
-        <div className="">
+        {isJoining && <div className="">
           <JoinClass />
-        </div>
+        </div>}
 
       </div>
       </>

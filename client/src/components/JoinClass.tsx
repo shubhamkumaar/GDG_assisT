@@ -1,7 +1,18 @@
 import { useState } from 'react';
 
+import {useDispatch } from 'react-redux';
+import { getClassCode, isJoiningClass } from '../features/joinPage/joinPageSlice';
+
 export default function JoinClass() {
     const [classCode, setClassCode] = useState("");
+
+    const dispatch = useDispatch();
+
+    function joinClass() {
+        dispatch(getClassCode(classCode));
+        dispatch(isJoiningClass(false));
+        setClassCode("")
+    }
 
     return (
         <div className='absolute top-[24rem] left-[64rem] w-[28rem] h-[16rem] flex items-center justify-center z-[69]'>
@@ -25,12 +36,12 @@ export default function JoinClass() {
                             />
                         </div>
                         
-                        <button
+                        <div onClick={joinClass}
                             className='w-full py-3 px-4 font-semibold rounded-lg bg-[#545E79] text-[#F2F4F8] hover:scale-[1.02] transform transition-all duration-200 active:scale-95
                             cursor-pointer'
                         >
                             Join Now
-                        </button>
+                        </div>
                     </div>
                 </div>
             </div>
