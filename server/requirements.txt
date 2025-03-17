@@ -4,3 +4,9 @@ pydantic
 uvicorn
 google-genai
 mistralai
+passlib[bcrypt]
+python-jose[cryptography]
+sqlalchemy
+psycopg2-binary
+pyjwt
+bcrypt==3.2.0
