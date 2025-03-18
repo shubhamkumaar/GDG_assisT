@@ -1,11 +1,12 @@
 from fastapi import FastAPI,Depends,HTTPException,status
 from typing import Annotated
 from fastapi.responses import JSONResponse
-from .routers import check_answer, feedback, auth, teacher, classes
+from .routers import check_answer, feedback, auth, teacher, classes, assignment
 from server.db.database import get_db
 import server.db.models as models
 from sqlalchemy.orm import Session
 from .routers.auth import get_current_user
+
 app = FastAPI()
 
 
@@ -14,6 +15,7 @@ app.include_router(check_answer.router)
 app.include_router(auth.router)
 app.include_router(teacher.router)
 app.include_router(classes.router)
+app.include_router(assignment.router)
 
 db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[models.User, Depends(get_current_user)]    

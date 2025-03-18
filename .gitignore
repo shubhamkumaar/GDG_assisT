@@ -41,3 +41,6 @@ Thumbs.db
 
 # Temporary files
 tmp/
+
+# Google Cloud Platform
+credentials.json

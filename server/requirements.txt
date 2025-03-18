@@ -10,3 +10,7 @@ sqlalchemy
 psycopg2-binary
 pyjwt
 bcrypt==3.2.0
+google.generativeai
+python-multipart
+google
+google-cloud-storage
