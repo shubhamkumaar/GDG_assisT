@@ -4,7 +4,7 @@ import server.db.models as models
 from sqlalchemy.orm import Session
 from server.db.database import get_db
 from typing import Annotated
-from server.routers.auth import get_current_user
+from server.routers.auth import verify_jwt_token
 from server.utils.google_cloud_storage import upload_file
 from typing import Optional
 from pydantic import BaseModel
@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[models.User, Depends(get_current_user)]
+user_dependency = Annotated[models.User, Depends(verify_jwt_token)]
 
 @router.post("/create_assignment")
 async def create_assignment(

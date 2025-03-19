@@ -88,7 +88,7 @@ async def create_user(user: User,db: db_dependency):
         )
     db_user = models.User(
         name = user.name,
-        email = user.email,
+        email = user.email.lower(),
         phone = user.phone,
         is_teacher = user.is_teacher,
         password=bcrypt_context.hash(user.password)
@@ -137,7 +137,7 @@ async def login_for_access_token(form_data:Annotated[OAuth2PasswordRequestForm,D
 
 def authenticate_user(email: str, password: str,db: db_dependency):
     """This function is used to check if the user exists in the database or not.The user is queried from the database if no user found it return false if a user was the found the sent password is verified with saved password in database using bcrypt_context and return the user finally"""
-    user = db.query(models.User).filter(models.User.email == email).first()
+    user = db.query(models.User).filter(models.User.email == email.lower()).first()
     if not user:
         return False
     if not bcrypt_context.verify(password, user.password):
@@ -192,37 +192,31 @@ async def google_callback(request: Request,db: db_dependency):
     email = user_info["email"]
     name = user_info["name"]
 
-    # user = db.query(models.User).filter(User.email == email).first()
+    user = db.query(models.User).filter(User.email == email).first()
 
-    # if not user:
-    #     db_user = models.User(
-    #     name = user.name,
-    #     email = user.email,
-    #     # phone = user.phone,
-    #     # is_teacher = user.is_teacher,
-    #     # password=bcrypt_context.hash(user.password)
-    #     )
-    #     db.add(db_user)    
-    #     db.commit()
-    #     db.refresh(db_user)
-
-    #     # Making a teacher or student based on the user input
-    #     if user.is_teacher:
-    #         db_teacher = models.Teachers(
-    #             user_id = db_user.id
-    #         )
-    #         db.add(db_teacher)
-    #     else:
-    #         db_student = models.Students(
-    #             user_id = db_user.id
-    #         )
-    #         db.add(db_student)
-    #     db.commit()
-    #     db.refresh(models.User)
-
+    if not user:
+        db_user = models.User(
+            name = user.name,
+            email = user.email,
+            phone = user.phone,
+            is_teacher = user.is_teacher,
+            password=bcrypt_context.hash(user.password)
+        )
+        try:
+                
+            db.add(db_user)    
+            db.commit()
+            db.refresh(db_user)
+        except Exception as e:
+            print(e)
+            raise HTTPException(
+                status_code = status.HTTP_405_METHOD_NOT_ALLOWED,
+                detail = "Error in creating user",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        email,"736737373737", expires_delta=access_token_expires
+        email, user.id, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer", "user": user_info, "message": "The route is succesfully implemented"}
 
