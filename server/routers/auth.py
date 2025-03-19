@@ -6,7 +6,7 @@ from server.db.database import engine, get_db
 import server.db.models as models
 from sqlalchemy.orm import Session
 from typing import List, Annotated
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from functools import lru_cache
 from server import config
 from jose import jwt,JWTError
@@ -69,22 +69,18 @@ async def create_user(user: User,db: db_dependency):
         is_teacher = user.is_teacher,
         password=bcrypt_context.hash(user.password)
     )
-    db.add(db_user)    
-    db.commit()
-    db.refresh(db_user)
-
-    # Making a teacher or student based on the user input
-    if user.is_teacher:
-        db_teacher = models.Teachers(
-            user_id = db_user.id
+    try:
+            
+        db.add(db_user)    
+        db.commit()
+        db.refresh(db_user)
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED,
+            detail = "Error in creating user",
+            headers={"WWW-Authenticate": "Bearer"}
         )
-        db.add(db_teacher)
-    else :
-        db_student = models.Students(
-            user_id = db_user.id
-        )
-        db.add(db_student)
-    db.commit()    
     content = {"name": db_user.name, "email": db_user.email, "phone": db_user.phone, "is_teacher": db_user.is_teacher}
     response = JSONResponse(content=content)
     response.set_cookie(key="user_id", value=str(db_user.id))

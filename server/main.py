@@ -1,7 +1,7 @@
 from fastapi import FastAPI,Depends,HTTPException,status
 from typing import Annotated
 from fastapi.responses import JSONResponse
-from .routers import check_answer, feedback, auth, teacher, classes, assignment
+from .routers import check_answer, feedback, auth, classes, assignment
 from server.db.database import get_db
 import server.db.models as models
 from sqlalchemy.orm import Session
@@ -13,7 +13,6 @@ app = FastAPI()
 app.include_router(feedback.router)
 app.include_router(check_answer.router)
 app.include_router(auth.router)
-app.include_router(teacher.router)
 app.include_router(classes.router)
 app.include_router(assignment.router)
 

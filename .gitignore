@@ -44,3 +44,6 @@ tmp/
 
 # Google Cloud Platform
 credentials.json
+
+# client 
+node_modules/
