@@ -16,7 +16,10 @@ from authlib.integrations.starlette_client import OAuth
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/auth",
+    tags=["auth",'login','signup'],
+)
 
 @lru_cache
 def get_settings():
@@ -66,7 +69,7 @@ models.Base.metadata.create_all(bind=engine)
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-@router.post("/auth/signup",status_code=status.HTTP_201_CREATED)
+@router.post("/signup",status_code=status.HTTP_201_CREATED)
 async def create_user(user: User,db: db_dependency):
     
     """This function merely registers the user with their email and password.It does this by checking if the user's email already existes in the database and if it exists raises an HTTP Exception. and does it again for phone number and then create a document with name email phone is_teacher and the password which is encrypted adds it to the database commits it and refresh the user.and if the boolean for is teacher is true then adds the relationship in Teachers and Students Relationship Table based on what it implies after commiting it into the database it then creates A template JSON response by first making a json response called content which is just the parameters sent by user minus password and converts into A JSONResponse and sets cookies for the values as such and creates the accesss token and sends back the response with access token and JSON Response"""
@@ -118,7 +121,7 @@ async def create_user(user: User,db: db_dependency):
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/auth/login", response_model=Token)
+@router.post("/login", response_model=Token)
 async def login_for_access_token(form_data:Annotated[OAuth2PasswordRequestForm,Depends()],db: db_dependency):
     """The user is authenticated to check if he exists in the database or not if thier is no user found an exception is raised an access token is created for user session and the corresponding object is returned"""
     user = authenticate_user(form_data.username, form_data.password,db)
@@ -172,13 +175,13 @@ def verify_jwt_token(token: Annotated[str,Depends(oauth2_bearer)],db: db_depende
 # Verify the routes below using   
 # http://localhost:8000/auth/google/login
 # Changed it to get for testing
-@router.get("/auth/google/login")
+@router.get("/google/login")
 async def google_login(request: Request):
     """Redirects the user to Google Authentication"""
     return await oauth.google.authorize_redirect(request,config.GOOGLE_REDIRECT_URI)
 
 # Changed it to get for testing
-@router.get("/auth/google/callback")
+@router.get("/google/callback")
 async def google_callback(request: Request,db: db_dependency):
     """this handles the google Oauth callback and generates the jwt. tbis does by first authorizing the request object and then getting the user info by parsing the id token then query for the user in database if the user is not in database add it then create the access token and return it"""
     
@@ -214,6 +217,7 @@ async def google_callback(request: Request,db: db_dependency):
                 detail = "Error in creating user",
                 headers={"WWW-Authenticate": "Bearer"}
             )
+        user = db_user
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         email, user.id, expires_delta=access_token_expires
