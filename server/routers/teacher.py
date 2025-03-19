@@ -3,7 +3,7 @@ import server.db.models as models
 from server.db.database import get_db
 from sqlalchemy.orm import Session
 from typing import Annotated
-from server.routers.auth import get_current_user
+from server.routers.auth import verify_jwt_token
 
 router = APIRouter(
     prefix="/teacher",
@@ -12,7 +12,7 @@ router = APIRouter(
 
 # DB Connection
 db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[models.User, Depends(get_current_user)] 
+user_dependency = Annotated[models.User, Depends(verify_jwt_token)] 
 
 @router.post("/create_class",status_code=status.HTTP_201_CREATED)
 async def create_class(user:user_dependency,class_name: str, class_description: str, db: db_dependency) :

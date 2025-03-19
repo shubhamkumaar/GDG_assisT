@@ -3,7 +3,7 @@ import server.db.models as models
 from server.db.database import get_db
 from sqlalchemy.orm import Session
 from typing import Annotated
-from server.routers.auth import get_current_user
+from server.routers.auth import verify_jwt_token
 
 router = APIRouter(
     prefix="/classes",
@@ -11,7 +11,7 @@ router = APIRouter(
 )
 # DB Connection
 db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[models.User, Depends(get_current_user)]
+user_dependency = Annotated[models.User, Depends(verify_jwt_token)]
 
 @router.get("/",status_code=status.HTTP_200_OK)
 async def get_classes(user:user_dependency,db: db_dependency):
