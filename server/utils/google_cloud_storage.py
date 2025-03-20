@@ -12,6 +12,8 @@ Settings = get_settings()
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = Settings.GOOGLE_APPLICATION_CREDENTIALS
 
+
+
 # Uploads a file to the bucket
 async def upload_file(file):
     if not file:
