@@ -18,7 +18,7 @@ from starlette.responses import RedirectResponse
 
 router = APIRouter(
     prefix="/auth",
-    tags=["auth"],
+    tags=["auth"]
 )
 
 @lru_cache
@@ -217,8 +217,7 @@ async def google_callback(request: Request,db: db_dependency):
                 status_code = status.HTTP_405_METHOD_NOT_ALLOWED,
                 detail = "Error in creating user",
                 headers={"WWW-Authenticate": "Bearer"}
-            )      
-    
+            )  
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         email, user.id, expires_delta=access_token_expires
