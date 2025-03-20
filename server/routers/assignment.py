@@ -17,6 +17,32 @@ router = APIRouter(
 db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[models.User, Depends(verify_jwt_token)]
 
+# Get assignment details
+@router.get("/",status_code=200)
+async def get_assignment(assignment_id:str,user:user_dependency,db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=404, detail="Authentication required")
+    assignment = db.query(models.Assignments).filter(models.Assignments.id == assignment_id.strip()).first()
+    if assignment is None:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    if user.is_teacher:
+        return {
+            "assignment_id": assignment.id,
+            "assignment_name": assignment.assignment_name,
+            "assignment_description": assignment.assignment_description,
+            "deadline": assignment.deadline,
+            "file": assignment.assignment_file,
+            "answer_file": assignment.answer_key
+        }
+    return {
+        "assignment_id": assignment.id,
+        "assignment_name": assignment.assignment_name,
+        "assignment_description": assignment.assignment_description,
+        "deadline": assignment.deadline,
+        "file": assignment.assignment_file
+    }
+
+# Create assignment for a class
 @router.post("/create_assignment")
 async def create_assignment(
     user: user_dependency,
@@ -50,13 +76,47 @@ async def create_assignment(
     
     return {"assignment_id": assignment.id, "assignment_name": assignment.assignment_name}
 
-@router.post("/submit_assignment/")
-async def submit_assignment():
-    return {"message": "submit assignment"}
-
-@router.post("/uploadfile/")
-async def create_upload_file(file: UploadFile):
-    if not file:
-        return {"message": "file not found"}
+# Submit assignment
+@router.post("/submit_assignment")
+async def submit_assignment(assignment_id:int,file:UploadFile,user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=404, detail="Authentication required")
+    
+    if user.is_teacher:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    assignment = db.query(models.Assignments).filter(models.Assignments.id == assignment_id).first()
+    if assignment is None:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
     res = await upload_file(file)
-    return res
+    try:
+        submission = models.Submissions(
+            assignment_id=assignment_id,
+            student_id=user.id,
+            submission_file=res["file_url"]
+        )
+        db.add(submission)
+        db.commit()
+        db.refresh(submission)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"submission_id": submission.id, "file_url": submission.submission_file}
+
+# Upload answer key for assignment by teacher
+@router.post("/answer_key")
+async def upload_answer_key(assignment_id:int,file:UploadFile,user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=404, detail="Authentication required")
+    
+    if not user.is_teacher:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    assignment = db.query(models.Assignments).filter(models.Assignments.id == assignment_id).first()
+    if assignment is None:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    res = await upload_file(file)
+    assignment.answer_key = res["file_url"]
+    db.commit()
+    return {"message": "Answer key uploaded successfully", "file_url": assignment.answer_key}
