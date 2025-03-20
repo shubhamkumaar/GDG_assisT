@@ -25,9 +25,9 @@ class Classes(Base):
     class_name = Column(String, nullable=False)
     teacher_id = Column(Integer, ForeignKey('users.id'))   
     syllabus = Column(String)
-    days_of_week = Column(ARRAY(String))
+    days_of_week = Column(ARRAY(String(3)))
     start_time = Column(Time)
-    last_instuction_day = Column(Date)
+    last_instruction_day = Column(Date)
 
 # Sets default deadline to 7 days from now
 def default_deadline():
