@@ -2,9 +2,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "GDG Assist"
-    MISTRAL_API_KEY: str = "YOUR_MISTRAL_API_KEY"
-    GENAI_API_KEY: str = "YOUR_GEMINI_API_KEY"
-    CLOUDINARY_URL: str = "YOUR_CLOUDINARY_URL"
-
+    app_name: str = "GDG AssisT"
+    MISTRAL_API_KEY: str
+    GENAI_API_KEY: str
+    SQLALCHEMY_DATABASE_URL:str
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    GOOGLE_APPLICATION_CREDENTIALS : str
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
     model_config = SettingsConfigDict(env_file="server/.env")
+
+
+GOOGLE_REDIRECT_URI="http://localhost:8000/auth/google/callback"
