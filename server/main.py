@@ -1,22 +1,25 @@
 from fastapi import FastAPI,Depends,HTTPException,status
 from typing import Annotated
 from fastapi.responses import JSONResponse
-from .routers import check_answer, feedback, auth, teacher, classes
+from .routers import check_answer, feedback, auth, classes, assignment
 from server.db.database import get_db
 import server.db.models as models
 from sqlalchemy.orm import Session
-from .routers.auth import get_current_user
+from .routers.auth import verify_jwt_token
+from starlette.middleware.sessions import SessionMiddleware
+
 app = FastAPI()
 
+app.add_middleware(SessionMiddleware, secret_key="your_secret_key_here")
 
 app.include_router(feedback.router)
 app.include_router(check_answer.router)
 app.include_router(auth.router)
-app.include_router(teacher.router)
 app.include_router(classes.router)
+app.include_router(assignment.router)
 
 db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[models.User, Depends(get_current_user)]    
+user_dependency = Annotated[models.User, Depends(verify_jwt_token)]    
 
 @app.get("/",status_code=status.HTTP_200_OK)
 async def user(user:user_dependency,db: db_dependency):

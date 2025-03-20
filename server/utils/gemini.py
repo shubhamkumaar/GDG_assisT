@@ -15,7 +15,7 @@ def upload_to_gemini(path, mime_type=None):
   """
   file = genai.upload_file(path, mime_type=mime_type)
   print(f"Uploaded file '{file.display_name}' as: {file.uri}")
-  return file
+  return file 
 
 def wait_for_files_active(files):
   """Waits for the given files to be active.
