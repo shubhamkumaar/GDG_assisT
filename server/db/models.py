@@ -64,3 +64,23 @@ class Class_Students(Base):
     __table_args__ = (
         PrimaryKeyConstraint('class_id', 'student_id', name='class_students_pk'),
     )
+
+class Materials(Base):
+    __tablename__ = 'materials'
+
+    id = Column(Integer, primary_key=True, index=True)
+    material_name = Column(String, nullable=False)
+    material_file = Column(String)
+    class_id = Column(String(6), ForeignKey('classes.id'))
+    description = Column(String)    
+
+class Announcements(Base):
+    __tablename__ = 'announcements'
+
+    id = Column(Integer, primary_key=True, index=True)
+    subject = Column(String, nullable=False)
+    message = Column(String)
+    file = Column(String)
+    class_id = Column(String(6), ForeignKey('classes.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
+    announcement_time = Column(DateTime, default=datetime.now)
