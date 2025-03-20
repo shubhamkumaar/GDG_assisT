@@ -183,12 +183,11 @@ async def google_callback(request: Request,db: db_dependency):
     """this handles the google Oauth callback and generates the jwt. tbis does by first authorizing the request object and then getting the user info by parsing the id token then query for the user in database if the user is not in database add it then create the access token and return it"""
     try:
         token = await oauth.google.authorize_access_token(request)
-        # return {"token": token}
     except Exception as e:
         print("OAuth Error:", str(e))
         raise HTTPException(
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail = "Error in creating user from google",
+            detail = "Error in login user from google",
             headers={"WWW-Authenticate": "Bearer"}
         )
     
@@ -198,8 +197,9 @@ async def google_callback(request: Request,db: db_dependency):
     name = user_info["name"]
 
     user = db.query(models.User).filter(models.User.email == email).first()
-    
+    new_user = False
     if not user:
+        new_user = True
         db_user = models.User(
             name = name,
             email = email,
@@ -222,7 +222,7 @@ async def google_callback(request: Request,db: db_dependency):
     access_token = create_access_token(
         email, user.id, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer","user":{"name":name,"email":email,"picture":user_info['picture']}, "message": "Login Successful with Google"}
+    return {"access_token": access_token, "token_type": "bearer","user":{"new_user":new_user,"name":name,"email":email,"picture":user_info['picture']}, "message": "Login Successful with Google"}
 
 @router.post("/protected")
 async def protected_route(user: dict = Depends(verify_jwt_token)):

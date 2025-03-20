@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body,Form, UploadFile, File
+from pydantic import BaseModel
 import server.db.models as models
+from typing import Optional
 from sqlalchemy.orm import Session
 from server.db.database import get_db
 from typing import Annotated
 from server.routers.auth import verify_jwt_token
-
+from server.utils.google_cloud_storage import upload_file
 router = APIRouter(
     prefix="/class",
     tags=["class"],
@@ -57,12 +59,78 @@ async def get_students(class_id:str,user:user_dependency,db: db_dependency):
 async def get_materials(class_id:str,user:user_dependency,db: db_dependency):
     if user is None:
         raise HTTPException(status_code=404, detail="Authentication required")
-    return {"message":"Not implemented yet"}
+    materials = db.query(models.Materials).filter(models.Materials.class_id == class_id.strip()).all()
+    return materials
 
 # Get Announcements of a class
 @router.get("/announcements",status_code=status.HTTP_201_CREATED)
 async def get_announcements(class_id:str,user:user_dependency,db: db_dependency):
     if user is None:
         raise HTTPException(status_code=404, detail="Authentication required")
-    return {"message":"Not implemented yet"}
+    announcements = db.query(models.Announcements,models.User).filter(models.Announcements.class_id == class_id.strip()).join(models.User, models.User.id == models.Announcements.user_id).all()
+    return [dict(announcement=a[0],created_by=dict(name=a[1].name,email=a[1].email,pic=a[1].profile_pic),) for a in announcements]
 
+# Post materials of a class
+@router.post("/materials",status_code=status.HTTP_201_CREATED)
+async def post_materials(
+    user:user_dependency,
+    db: db_dependency,
+    class_id: str = Form(...),
+    material_name: str = Form(...),
+    material_description: str = Form(...),
+    material_link: Optional[UploadFile] = File(None)
+):
+    
+    if user is None:
+        raise HTTPException(status_code=404, detail="Authentication required")
+    
+    if not user.is_teacher:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    new_material = models.Materials(
+        class_id=class_id.strip(),
+        material_name=material_name,
+        description=material_description,
+    )
+    # return new_material
+    if material_link:
+        res = await upload_file(material_link)
+        print()
+        new_material.material_file = res['file_url']
+    db.add(new_material)
+    db.commit()
+    db.refresh(new_material)
+    return {"class_id": class_id, "material_id":new_material.id,"material_name": material_name, "material_description": material_description, "material_link": new_material.material_file}
+    # return {"message":"Material posted successfully"}
+
+# Post Announcements of a class
+@router.post("/announcements",status_code=status.HTTP_201_CREATED)
+async def post_announcements(
+    user:user_dependency,
+    db: db_dependency,
+    class_id: str = Form(...),
+    subject: str = Form(...),
+    message: str = Form(...),
+    file: Optional[UploadFile] = File(None)
+):
+    
+    if user is None:
+        raise HTTPException(status_code=404, detail="Authentication required")
+    
+    if not user.is_teacher:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    new_announcement = models.Announcements(
+        class_id=class_id.strip(),
+        subject=subject,
+        message=message,
+        user_id=user.id
+    )
+    if file:
+        res = await upload_file(file)
+        print()
+        new_announcement.file = res['file_url']
+    db.add(new_announcement)
+    db.commit()
+    db.refresh(new_announcement)
+    return {"class_id": class_id, "announcement_id":new_announcement.id,"announcement": subject, "message": message, "file":new_announcement.file,"created_at":new_announcement.announcement_time}
