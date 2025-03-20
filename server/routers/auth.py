@@ -15,6 +15,8 @@ from passlib.context import CryptContext
 from authlib.integrations.starlette_client import OAuth
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
+from typing import Optional
+token_blacklist = set()
 
 router = APIRouter(
     prefix="/auth",
@@ -157,6 +159,8 @@ def verify_jwt_token(token: Annotated[str,Depends(oauth2_bearer)],db: db_depende
     """This is used for in protected routes for getting the current user using the JSON Web Token which was sent under the try catch block,the payload is decoded using the jwt decode from then the user is queried fronm the database to seee if it exists and if it dosent an exception is raised and if their was error in Decoding JWT another HTTPexception is raised and if there were no errors the current user is returned"""
 
     try:
+        if token in token_blacklist:
+            raise HTTPException(status_code=401,detail="Token was revoked")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         # print(username)
         user = db.query(models.User).filter(models.User.email == payload.get('sub')).first()
@@ -227,3 +231,12 @@ async def google_callback(request: Request,db: db_dependency):
 @router.post("/protected")
 async def protected_route(user: dict = Depends(verify_jwt_token)):
     return {"Message": "you have access","user": user}
+
+@router.post("/logout")
+async def logout(request: Request,token: Optional[str] = None):
+    request.session.clear()
+
+    if token:
+        token_blacklist.add(token)
+
+    return RedirectResponse(url="/")
