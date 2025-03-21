@@ -7,10 +7,16 @@ import uuid
 from mistralai import Mistral, OCRResponse
 import google.generativeai as genai
 from fastapi import APIRouter,File, UploadFile
+import requests
 from server import config
 from server.utils.gemini import gemini_generation_config,safety_settings, wait_for_files_active, upload_to_gemini
 
-router = APIRouter()
+# this probably doesn't need to be a route anymore, but instead a function that is called by another route
+
+
+router = APIRouter(
+    tags=["Automation"],
+)
 
 @lru_cache
 def get_settings():
@@ -24,7 +30,7 @@ client = Mistral(api_key=api_key)
 gemini_api_key = Settings.GENAI_API_KEY
 genai.configure(api_key=gemini_api_key)
 
-async def ocr_response_mistral(file_name:str, file_path:str):
+def ocr_response_mistral(file_name:str, file_path:str):
     # Upload file to Mistral
     uploaded_pdf = client.files.upload(
         file={
@@ -93,7 +99,14 @@ You will need to merge the responses based on the below instructions:
     - Use the response from Engine 2 to find the relevant images and where they go.
     - Make sure to include *every* image from Engine 1 in the final response.
     - You will need to ensure that the images are correctly placed in the text content, to do this look for text before and after the image in Engine 1 and compare that to Engine 2 and place the image in the same location in the final response.
+    - Engine 2 might have diagrams in the form of <Diagram>Text explaining content of diagram in a single short line</Diagram>, this is only for your ease of understanding what goes where and should not be included in the final response, instead, replace it by including the images from Engine 1 in the correct markdown format.
 - The original responses are organized by page number, but your output needs to be organized by the question number. Understand the text content thoroughly to organize it correctly.
+- You can generally tell a question from the other using:
+    - Whenever a question starts, there must be a question number.
+    - The text content inside the question might span multiple pages.
+    - Use your best judgment to understand where a question starts and ends.
+- Use h1 headers only for the question number. For the top header use h2.
+- Only write the question number and its corresponding answer, dont actually make up the question.
 - Output in markdown format
 - Any header before the questions start should be added at the top of the response.
 """
@@ -111,7 +124,7 @@ You will need to merge the responses based on the below instructions:
     return response
     
 
-def save_images_ocr(ocr_response:OCRResponse,request_id:str=""):
+def save_images_ocr(ocr_response:OCRResponse,job_id:str,request_id:str="")->str:
     images = []
     for page in ocr_response.pages:
         page_images = []
@@ -128,14 +141,18 @@ def save_images_ocr(ocr_response:OCRResponse,request_id:str=""):
     if request_id=="":
         request_id = str(uuid.uuid4())
     
-    temp_dir = f"./tmp/{request_id}"
+    temp_dir = f"./tmp/{job_id}/{request_id}"
+
+    if request_id==None:
+        temp_dir = f"./tmp/{job_id}"
+
     os.makedirs(temp_dir, exist_ok=True)
     for image in images:
         image_path = os.path.join(temp_dir, f"{image['image_name']}")
         with open(image_path, "wb") as buffer:
             buffer.write(base64.b64decode(image["image_base64"].split(',')[1]))
     
-    return request_id
+    return f"{job_id}/{request_id}"
 
 
 def clean_ocr_response_mistral(ocr_response:OCRResponse)->str:
@@ -146,27 +163,26 @@ def clean_ocr_response_mistral(ocr_response:OCRResponse)->str:
         text += temp
     return text
 
-baseDir = "./public"
-@router.post("/check")
-async def checkAnswer(file: UploadFile | None = None):
-    # Upload file to my server
-    if not file:
-        return {"message": "No upload file sent"}
-    
-    file_name = "uploaded_file.pdf"
-    os.makedirs(baseDir, exist_ok=True)  # Ensure the directory exists
 
-    # Always keep the file in the public folder named as uploaded_file
-    file_path = os.path.join(baseDir, file_name)
-    
-    #Save the file in the file_path 
-    with open(file_path, "wb") as buffer:
-        buffer.write(await file.read())  # Async read the content and write to file
+@router.post("/check")
+async def ocr_submission(file_url:str, job_id:str):
+    # create a request id
+    request_id = str(uuid.uuid4())
+    temp_dir = f"./tmp/{job_id}/{request_id}"
+    os.makedirs(temp_dir, exist_ok=True)
+
+    # download the file to the temp directory, name the file submission.pdf
+    file_name = "submission.pdf"
+    file_path = os.path.join(temp_dir, file_name)
+    response = requests.get(file_url)
+
+    with open(file_path, "wb") as f:
+        f.write(response.content)
     
     # calling mistral ocr
     response_mistral = await ocr_response_mistral(file_name, file_path)
     # Save the images from the OCR response
-    request_id = save_images_ocr(response_mistral)
+    request_id = save_images_ocr(response_mistral, job_id, request_id)
     # calling gemini ocr
     response_gemini = await ocr_response_gemini(file_path)
     # clean the OCR response from Mistral
@@ -174,12 +190,12 @@ async def checkAnswer(file: UploadFile | None = None):
     # merge the OCR responses
     response = await merge_ocr_responses(response_mistral, response_gemini)
     # Remove the file after OCR response
-    os.unlink(file_path)
+    # os.unlink(file_path)
 
     # also save the response as markdown file in the temp directory
-    with open(f"./tmp/{request_id}/response.md", "w") as f:
+    with open(f"{temp_dir}/response.md", "w") as f:
         f.write(response)
 
     # Return the OCR response
-    return response
+    return {"request_id": request_id, "response": response}
 

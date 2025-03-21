@@ -2,6 +2,7 @@
 - Change directory to backend `cd server`
 - Install necessary packages `pip install -r requirements.txt`
 - Create an .env file based on the .env.example in the `server` folder
+- Install pandoc using `sudo pacman -Syu pandoc` on arch linux or `sudo apt-get install pandoc`
 
 # Usage
 - Make sure you are in the root directory of the repo
