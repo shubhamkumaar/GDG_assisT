@@ -30,7 +30,7 @@ async def get_assignment(assignment_id:str,user:user_dependency,db: db_dependenc
             "assignment_id": assignment.id,
             "assignment_name": assignment.assignment_name,
             "assignment_description": assignment.assignment_description,
-            "deadline": assignment.deadline,
+            "deadline": assignment.assignment_deadline,
             "file": assignment.assignment_file,
             "answer_file": assignment.answer_key
         }
@@ -57,14 +57,24 @@ async def create_assignment(
         raise HTTPException(status_code=404, detail="Authentication required")
     if not user.is_teacher:
         raise HTTPException(status_code=403, detail="Forbidden")
-    print(deadline)
     
+    # check to see if the class is owned by the teacher
+    selected_class = db.query(models.Classes).filter(models.Classes.id == class_id).first()
+    if selected_class is None:
+        raise HTTPException(status_code=404, detail="Class not found")
+    else:
+        if selected_class.teacher_id != user.id:
+            raise HTTPException(status_code=403, detail="Forbidden")
+
     assignment = models.Assignments(
         class_id=class_id,
         assignment_name=name,
         assignment_description=description
     )
     if deadline:
+        # check to see if the deadline is valid, and is in the future
+        if deadline < datetime.now(timezone.utc):
+            raise HTTPException(status_code=400, detail="Invalid deadline")
         assignment.deadline = deadline
     if file:
         res = await upload_file(file)
