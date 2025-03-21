@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, HTTPException, Depends, File,Form
+from fastapi import APIRouter, UploadFile, HTTPException, Depends, File,Form, status
 from datetime import datetime, timezone
 import server.db.models as models
 from sqlalchemy.orm import Session
@@ -7,7 +7,6 @@ from typing import Annotated
 from server.routers.auth import verify_jwt_token
 from server.utils.google_cloud_storage import upload_file
 from typing import Optional
-from pydantic import BaseModel
 
 router = APIRouter(
     prefix="/assignment",
@@ -18,7 +17,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[models.User, Depends(verify_jwt_token)]
 
 # Get assignment details
-@router.get("/",status_code=200)
+@router.get("/",status_code=status.HTTP_200_OK)
 async def get_assignment(assignment_id:str,user:user_dependency,db: db_dependency):
     if user is None:
         raise HTTPException(status_code=404, detail="Authentication required")
@@ -43,7 +42,7 @@ async def get_assignment(assignment_id:str,user:user_dependency,db: db_dependenc
     }
 
 # Create assignment for a class
-@router.post("/create_assignment")
+@router.post("/create_assignment",status_code=status.HTTP_201_CREATED)
 async def create_assignment(
     user: user_dependency,
     db: db_dependency,
@@ -87,7 +86,7 @@ async def create_assignment(
     return {"assignment_id": assignment.id, "assignment_name": assignment.assignment_name}
 
 # Submit assignment
-@router.post("/submit_assignment")
+@router.post("/submit_assignment",status_code=status.HTTP_201_CREATED)
 async def submit_assignment(assignment_id:int,file:UploadFile,user: user_dependency, db: db_dependency):
     if user is None:
         raise HTTPException(status_code=404, detail="Authentication required")
@@ -114,7 +113,7 @@ async def submit_assignment(assignment_id:int,file:UploadFile,user: user_depende
     return {"submission_id": submission.id, "file_url": submission.submission_file}
 
 # Upload answer key for assignment by teacher
-@router.post("/answer_key")
+@router.post("/answer_key",status_code=status.HTTP_201_CREATED)
 async def upload_answer_key(assignment_id:int,file:UploadFile,user: user_dependency, db: db_dependency):
     if user is None:
         raise HTTPException(status_code=404, detail="Authentication required")
@@ -130,3 +129,19 @@ async def upload_answer_key(assignment_id:int,file:UploadFile,user: user_depende
     assignment.answer_key = res["file_url"]
     db.commit()
     return {"message": "Answer key uploaded successfully", "file_url": assignment.answer_key}
+
+# Get all submissions for an assignment by teacher
+@router.get("/submissions",status_code=status.HTTP_200_OK)
+async def get_submissions(assignment_id:int,user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=404, detail="Authentication required")
+    
+    if not user.is_teacher:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    assignment = db.query(models.Assignments).filter(models.Assignments.id == assignment_id).first()
+    if assignment is None:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    submissions = db.query(models.Submissions).filter(models.Submissions.assignment_id == assignment_id).all()
+    return submissions

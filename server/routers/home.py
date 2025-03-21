@@ -87,14 +87,23 @@ async def get_todo(user:user_dependency, db: db_dependency) :
         raise HTTPException(status_code=403, detail="Forbidden")
     
     todos = (
-        db.query(models.Assignments.id,models.Assignments.assignment_name,models.Assignments.assignment_description,models.Assignments.assignment_deadline,models.Classes.class_name) #select assignments
-        .join(models.Class_Students, models.Assignments.class_id == models.Class_Students.class_id) #join with class_students and assignments
-        .outerjoin(models.Submissions, 
-                   (models.Submissions.assignment_id == models.Assignments.id) & 
-                   (models.Submissions.student_id == user.id))
-        .filter(models.Class_Students.student_id == user.id)
-        .filter(models.Submissions.id.is_(None))  # No submission exists for the assignment
-        .all()
+         db.query(models.Class_Students,models.Assignments)
+         .join(models.Assignments,models.Class_Students.class_id == models.Assignments.class_id)
+         .filter(models.Class_Students.student_id == user.id)
+         .outerjoin(models.Submissions,models.Assignments.id == models.Submissions.assignment_id)
+         .filter(models.Submissions.id == None)
+         .all()
     )
-    todos_list = [{"id": t[0], "assignment_name": t[1],"description":t[2], "due_date": t[3],"class_name":t[4]} for t in todos]
+    todos_list = []
+    for t in todos:
+        classes = db.query(models.Classes).filter(models.Classes.id == t[0].class_id).first()
+        todos_list.append({
+            "assignment_id": t[1].id,
+            "assignment_name": t[1].assignment_name,
+            "assignment_description": t[1].assignment_description,
+            "class_id": t[0].class_id,
+            "class_name": classes.class_name,
+            "due_date": t[1].assignment_deadline
+        })
+    # todos_list = [{"id": t[0].class_id, "assignment_name": t[1]} for t in todos]
     return todos_list
