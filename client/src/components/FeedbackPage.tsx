@@ -1,10 +1,8 @@
 
-
-export default function FeedbackPage() {
-
+export default function Feedback() {
     return (
         <div>
-            Feedback
+            f
         </div>
-    )
+    );
 }

@@ -1,17 +1,23 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom';
+
 
 
 export default function ClassBox() {
 
   const [notification, setNotification] = useState(false);
+  
   return (
     <>
-    <div className='bg-[#8591ad] w-[24rem] h-[22rem] rounded-2xl mt-12 ml-16'>
+     <Link
+        className="bg-[#8591ad] w-[20rem] h-[21rem] rounded-2xl mt-12 ml-16"
+        to="/classroom">
+
+    {/* <div className=''> */}
 
       <div className='flex flex-row items-center justify-between'>
         <div className="flex flex-col justify-between p-4">
           <div className="text-3xl font-semibold text-[#F2F4F8] cursor-pointer ml-6" >Name</div>
-          <div className="text-xl font-light text-[#F2F4F8] cursor-pointer ml-10" >class no. </div>
           <div className="text-2xl font-medium text-[#F2F4F8] cursor-pointer ml-6" >Teacher</div>
         </div>
         <div className="flex flex-row justify-center p-4">
@@ -49,7 +55,8 @@ export default function ClassBox() {
           src="OtherPage.svg" alt="OtherPage" />
       </div>
 
-    </div>
+    {/* </div> */}
+    </Link>
     </>
   )
 }

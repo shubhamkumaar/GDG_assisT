@@ -1,7 +1,5 @@
 import ClassBox from "./ClassBox";
 
-
-
 export default function HomePage() {
 
     return (

@@ -1,17 +1,27 @@
 import { useState } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 import {useDispatch } from 'react-redux';
-import { getClassCode, isJoiningClass } from '../features/joinPage/joinPageSlice';
+import { isJoiningClass } from '../features/joinPage/joinPageSlice';
 
-export default function JoinClass() {
-    const [classCode, setClassCode] = useState("");
+export default function CreateClass() {
+    const [className, setClassName] = useState("");
 
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
-    function joinClass() {
-        dispatch(getClassCode(classCode));
-        dispatch(isJoiningClass(false));
-        setClassCode("")
+    const data = {
+        classId: "123",
+        className,
+      };
+
+    function createClasses() {
+        if (className) {
+            dispatch(isJoiningClass(false));
+            setClassName("");
+            navigate('/classroom', { state: data });
+        }
+        else dispatch(isJoiningClass(false));
+        // tost will apper
     }
 
     return (
@@ -19,26 +29,26 @@ export default function JoinClass() {
             <div className='w-full max-w-md mx-4 shadow-xl border border-[#bac4df] rounded-xl bg-[#ced3df] transition-all duration-300 hover:shadow-2xl'>
                 <div className='p-8 space-y-6'>
                     <h2 className='text-3xl font-bold text-center leading-tight tracking-tight'>
-                        Join Classroom
+                        Create Classroom
                     </h2>
 
                     <div className='space-y-4'>
                         <div className='space-y-2'>
                             <label className='text-sm font-medium sr-only'>
-                                Class Code
+                                Class Name
                             </label>
                             <input 
-                                value={classCode}
-                                onChange={(e) => setClassCode(e.target.value)}
+                                value={className}
+                                onChange={(e) => setClassName(e.target.value)}
                                 type='text' 
-                                placeholder='Enter Class Code'
+                                placeholder='Enter Class Name'
                                 className='w-full px-4 py-3 border-2 border-[#545E79] rounded-lg focus:ring-2 focus:ring-[#545E79] focus:outline-none transition-all duration-200'
                             />
                         </div>
-                        <div onClick={joinClass}
+                        <div onClick={createClasses}
                             className='w-full py-3 px-4 font-semibold rounded-lg bg-[#545E79] text-[#F2F4F8] text-center hover:scale-[1.02] transform transition-all duration-200 active:scale-95
                             cursor-pointer'>
-                            Join Now
+                            Create Class
                         </div>
                     </div>
                 </div>

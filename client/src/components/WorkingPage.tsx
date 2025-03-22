@@ -8,11 +8,13 @@ import FeedbackPage from './FeedbackPage';
 import ProfilePage from './ProfilePage';
 import TodoPage from './TodoPage';
 import ResultPage from './ResultPage';
+import CreateClass from './CreateClass';
 
 export default function WorkingPage() {
 
   const pageValue = useSelector((state: RootState) => state.workingPage.pageName)
   const isJoining = useSelector((state: RootState) => state.joinPage.isJoining)
+  const isTeacher = useSelector((state: RootState) => state.isTeacherPage.isTeacher)
 
     return (
       <>
@@ -33,8 +35,11 @@ export default function WorkingPage() {
         }
       })()}
 
-        {isJoining && <div className="">
+        {isJoining && !isTeacher && <div className="">
           <JoinClass />
+        </div>}
+        {isJoining && isTeacher && <div className="">
+          <CreateClass />
         </div>}
 
       </div>
