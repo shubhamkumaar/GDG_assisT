@@ -2,6 +2,7 @@ import os
 import io
 import base64
 from functools import lru_cache
+import re
 from typing import Annotated
 import uuid
 from mistralai import Mistral, OCRResponse
@@ -108,6 +109,7 @@ You will need to merge the responses based on the below instructions:
     - Use your best judgment to understand where a question starts and ends.
     - Make sure you don't convert big headings into extra questions, only start a new question if you see a question number.
 - Use h1 headers only for the question number. For the top header use h2. For parts inside a question use h3.
+- Do not ever use h1 headers `# ` for anything other than the question number, however important it may seem.
 - Only write the question number and its corresponding answer, dont actually make up the question.
 - Output in markdown format
 - Any header before the questions start should be added at the top of the response.
@@ -126,7 +128,7 @@ You will need to merge the responses based on the below instructions:
     return response
     
 
-def save_images_ocr(ocr_response:OCRResponse,job_id:str,request_id:str="")->str:
+def save_images_ocr(ocr_response:OCRResponse,job_id:str,request_id:str="")->tuple:
     images = []
     for page in ocr_response.pages:
         page_images = []
@@ -154,7 +156,7 @@ def save_images_ocr(ocr_response:OCRResponse,job_id:str,request_id:str="")->str:
         with open(image_path, "wb") as buffer:
             buffer.write(base64.b64decode(image["image_base64"].split(',')[1]))
     
-    return f"{job_id}/{request_id}"
+    return f"{job_id}/{request_id}", images[-1]["image_name"]
 
 
 def clean_ocr_response_mistral(ocr_response:OCRResponse)->str:
@@ -181,7 +183,7 @@ def ocr_answer_submission(file_url:str,job_id:str,request_id:str):
     # calling mistral ocr
     response_mistral = ocr_response_mistral(file_name, file_path)
     # Save the images from the OCR response
-    request_id = save_images_ocr(response_mistral, job_id, request_id)
+    request_id, last_image = save_images_ocr(response_mistral, job_id, request_id)
     # calling gemini ocr
     response_gemini = ocr_response_gemini(file_path)
     # clean the OCR response from Mistral
@@ -190,6 +192,14 @@ def ocr_answer_submission(file_url:str,job_id:str,request_id:str):
     response = merge_ocr_responses(response_mistral, response_gemini)
     # Remove the file after OCR response
     # os.unlink(file_path)
+
+    # clean response to include any extra images than there should be
+    last_image_n = re.findall(r'\d+', last_image)
+    split_last_image = last_image.split(last_image_n[0])
+    last_image_n = int(last_image_n[0])
+    # surely there are no more than 100 extra images :D
+    for i in range(1, last_image_n+100):
+        response.replace(f"![{split_last_image[0]}{i}{split_last_image[1]}", "")
 
     # also save the response as markdown file in the temp directory
     with open(f"{temp_dir}/response.md", "w") as f:

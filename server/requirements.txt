@@ -28,3 +28,4 @@ google.generativeai
 python-multipart
 google
 google-cloud-storage
+xmltodict
