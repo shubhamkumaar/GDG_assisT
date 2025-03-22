@@ -47,3 +47,6 @@ credentials.json
 
 # client 
 node_modules/
+
+# generated files
+public/
