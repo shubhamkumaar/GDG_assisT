@@ -162,7 +162,7 @@ export default function AssignmentPage() {
                     </div>
                     ) : (isTeacher ? <div className="flex flex-col w-[32rem] h-[32rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                                 <div className="text-green-800 text-4xl mt-2 text-center">Result is out!</div>
-                        <div className="transition-all duration-300 ease-in-out overflow-y-auto hide-scrollbar">
+                        <div className="transition-all duration-300 ease-in-out overflow-y-auto hide-llbar">
                             <div className=" p-4 rounded-lg overflow-y-auto">
                                     <ul className="space-y-4 overflow-y-auto" >
                                         {students.map((student) => (
