@@ -765,9 +765,9 @@ def xml_to_json(xml:str)->str:
         
         # convert max_score and score to integers
         if 'max_score' in result['feedback']:
-            result['feedback']['max_score'] = int(result['feedback']['max_score'])
+            result['feedback']['max_score'] = int(float(result['feedback']['max_score']))
         if 'score' in result['feedback']:
-            result['feedback']['score'] = int(result['feedback']['score'])
+            result['feedback']['score'] =  int(float(result['feedback']['score']))
 
         # Clean up summary_bullets
         if 'feedback' in result and 'summary_bullets' in result['feedback'] and result['feedback']['summary_bullets'] is not None:
