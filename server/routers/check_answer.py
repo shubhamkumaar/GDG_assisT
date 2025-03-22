@@ -2,6 +2,7 @@ import os
 import io
 import base64
 from functools import lru_cache
+import re
 from typing import Annotated
 import uuid
 from mistralai import Mistral, OCRResponse
@@ -9,7 +10,7 @@ import google.generativeai as genai
 from fastapi import APIRouter,File, UploadFile
 import requests
 from server import config
-from server.utils.gemini import gemini_generation_config,safety_settings, wait_for_files_active, upload_to_gemini
+from server.utils.gemini import gemini_generation_config,safety_settings, wait_for_files_active, upload_to_gemini,gemini_generation_config_thinking
 
 # this probably doesn't need to be a route anymore, but instead a function that is called by another route
 
@@ -53,7 +54,7 @@ def ocr_response_mistral(file_name:str, file_path:str):
     )    
     return ocr_response
 
-async def ocr_response_gemini(file_path:str)->str:
+def ocr_response_gemini(file_path:str)->str:
     gemini_client = genai.GenerativeModel(
                         model_name="gemini-2.0-flash",
                         generation_config=gemini_generation_config,
@@ -80,21 +81,22 @@ async def ocr_response_gemini(file_path:str)->str:
 
     # get the response
     response = chat_session.send_message("OCR the given pdf in a structured manner and organize it based on the page number."
-                                         "If you find any diagrams, replace it with the text <Diagram>Text explaining content of diagram in a single short line</Diagram>").text
+                                         "If you find any diagrams or images, replace it with the text <Diagram>Text explaining content of diagram in a single short line</Diagram>"
+                                         "Make sure to include explicitly any 'Question No.' such as 'Q.1','Q)1', 'Question 1', 'Ques.1', etc.").text
     
     return response
 
-async def merge_ocr_responses(ocr_response_mistral:str, ocr_response_gemini:str)->str:
+def merge_ocr_responses(ocr_response_mistral:str, ocr_response_gemini:str)->str:
     gemini_client = genai.GenerativeModel(
-                        model_name="gemini-2.0-flash",
-                        generation_config=gemini_generation_config,
+                        model_name="gemini-2.0-flash-thinking-exp-01-21",
+                        generation_config=gemini_generation_config_thinking,
                         safety_settings=safety_settings,
                         system_instruction="""You are given two OCR responses from two different OCR engines. 
 You will need to merge the responses based on the below instructions:
 - The response from Engine 1 contains both the text and images. Images are embedded in the text itself using markdown syntax.
-- The text content of Engine 1 is really gibberish but it gets a word or two right, but the images and their locations are accurate.
+- The text content of Engine 1 is unusable and you should not use any of it, nor should you take any inspiration from it.
 - The response from Engine 2 contains only the text content and is really accurate.
-- Now to merge the responses:
+- Now to merge the responses(Not actuall merge but just add in markdown images from Engine 1 to Engine 2):
     - You will need to keep the response from Engine 2 as the base response.
     - Use the response from Engine 2 to find the relevant images and where they go.
     - Make sure to include *every* image from Engine 1 in the final response.
@@ -105,7 +107,9 @@ You will need to merge the responses based on the below instructions:
     - Whenever a question starts, there must be a question number.
     - The text content inside the question might span multiple pages.
     - Use your best judgment to understand where a question starts and ends.
-- Use h1 headers only for the question number. For the top header use h2.
+    - Make sure you don't convert big headings into extra questions, only start a new question if you see a question number.
+- Use h1 headers only for the question number. For the top header use h2. For parts inside a question use h3.
+- Do not ever use h1 headers `# ` for anything other than the question number, however important it may seem.
 - Only write the question number and its corresponding answer, dont actually make up the question.
 - Output in markdown format
 - Any header before the questions start should be added at the top of the response.
@@ -114,9 +118,9 @@ You will need to merge the responses based on the below instructions:
 
     # get the response
     response = gemini_client.generate_content(f"""
-    # Engine 1 (Mistral OCR)
+    # Engine 1 (Bad OCR)
     {ocr_response_mistral}
-    # Engine 2 (Gemini OCR)
+    # Engine 2 (Good OCR)
     {ocr_response_gemini}""").text
     response = response.replace("```markdown\n", "")
     response = response.replace("```", "")
@@ -124,7 +128,7 @@ You will need to merge the responses based on the below instructions:
     return response
     
 
-def save_images_ocr(ocr_response:OCRResponse,job_id:str,request_id:str="")->str:
+def save_images_ocr(ocr_response:OCRResponse,job_id:str,request_id:str="")->tuple:
     images = []
     for page in ocr_response.pages:
         page_images = []
@@ -152,7 +156,7 @@ def save_images_ocr(ocr_response:OCRResponse,job_id:str,request_id:str="")->str:
         with open(image_path, "wb") as buffer:
             buffer.write(base64.b64decode(image["image_base64"].split(',')[1]))
     
-    return f"{job_id}/{request_id}"
+    return f"{job_id}/{request_id}", images[-1]["image_name"]
 
 
 def clean_ocr_response_mistral(ocr_response:OCRResponse)->str:
@@ -163,11 +167,8 @@ def clean_ocr_response_mistral(ocr_response:OCRResponse)->str:
         text += temp
     return text
 
-
-@router.post("/check")
-async def ocr_submission(file_url:str, job_id:str):
+def ocr_answer_submission(file_url:str,job_id:str,request_id:str):
     # create a request id
-    request_id = str(uuid.uuid4())
     temp_dir = f"./tmp/{job_id}/{request_id}"
     os.makedirs(temp_dir, exist_ok=True)
 
@@ -180,17 +181,25 @@ async def ocr_submission(file_url:str, job_id:str):
         f.write(response.content)
     
     # calling mistral ocr
-    response_mistral = await ocr_response_mistral(file_name, file_path)
+    response_mistral = ocr_response_mistral(file_name, file_path)
     # Save the images from the OCR response
-    request_id = save_images_ocr(response_mistral, job_id, request_id)
+    request_id, last_image = save_images_ocr(response_mistral, job_id, request_id)
     # calling gemini ocr
-    response_gemini = await ocr_response_gemini(file_path)
+    response_gemini = ocr_response_gemini(file_path)
     # clean the OCR response from Mistral
     response_mistral = clean_ocr_response_mistral(response_mistral)
     # merge the OCR responses
-    response = await merge_ocr_responses(response_mistral, response_gemini)
+    response = merge_ocr_responses(response_mistral, response_gemini)
     # Remove the file after OCR response
     # os.unlink(file_path)
+
+    # clean response to include any extra images than there should be
+    last_image_n = re.findall(r'\d+', last_image)
+    split_last_image = last_image.split(last_image_n[0])
+    last_image_n = int(last_image_n[0])
+    # surely there are no more than 100 extra images :D
+    for i in range(1, last_image_n+100):
+        response.replace(f"![{split_last_image[0]}{i}{split_last_image[1]}", "")
 
     # also save the response as markdown file in the temp directory
     with open(f"{temp_dir}/response.md", "w") as f:
@@ -199,3 +208,8 @@ async def ocr_submission(file_url:str, job_id:str):
     # Return the OCR response
     return {"request_id": request_id, "response": response}
 
+@router.post("/check")
+async def ocr_submission(file_url:str, job_id:str):
+    # create a request id
+    request_id = str(uuid.uuid4())
+    return ocr_answer_submission(file_url, job_id, request_id)
