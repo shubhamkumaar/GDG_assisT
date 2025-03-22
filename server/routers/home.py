@@ -5,11 +5,15 @@ from server.db.database import get_db
 from typing import Annotated
 from server.routers.auth import verify_jwt_token
 
-router = APIRouter()
+router = APIRouter(
+    tags=["Home"],
+)
+
 # DB Connection
 db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[models.User, Depends(verify_jwt_token)]
 
+# Get the all the register classes of the user
 @router.get("/classes",status_code=status.HTTP_200_OK)
 async def get_classes(user:user_dependency,db: db_dependency):
     if user is None:
@@ -34,6 +38,7 @@ async def get_classes(user:user_dependency,db: db_dependency):
                 })
         return classes
 
+# Teacher can create a class
 @router.post("/create_class",status_code=status.HTTP_201_CREATED)
 async def create_class(class_name: str, user:user_dependency, db: db_dependency) :
     if user is None:
@@ -51,6 +56,7 @@ async def create_class(class_name: str, user:user_dependency, db: db_dependency)
     db.refresh(new_class)
     return {"class_id": new_class.id, "class_name": new_class.class_name}
 
+# Join the class
 @router.post("/join_class",status_code=status.HTTP_201_CREATED)
 async def join_class(class_id: str, user:user_dependency, db: db_dependency) :
     if user is None:
@@ -65,7 +71,9 @@ async def join_class(class_id: str, user:user_dependency, db: db_dependency) :
     db.add(class_student)
     db.commit()
     return {"message": "Joined class successfully"}
-    
+ 
+# When any teacher signup using google oauth, is_teacher field is set to False
+# So, we need to update the is_teacher field to True
 @router.get("/update_isteacher",status_code=status.HTTP_201_CREATED)
 async def update_isteacher(user:user_dependency, db: db_dependency) :
     if user is None:
@@ -78,6 +86,7 @@ async def update_isteacher(user:user_dependency, db: db_dependency) :
     db.commit()
     return {"message": "User updated successfully"}  
   
+#  Get the assignments which are not submitted by the student
 @router.get("/todo",status_code=status.HTTP_200_OK)
 async def get_todo(user:user_dependency, db: db_dependency) :
     if user is None:
@@ -87,23 +96,33 @@ async def get_todo(user:user_dependency, db: db_dependency) :
         raise HTTPException(status_code=403, detail="Forbidden")
     
     todos = (
-         db.query(models.Class_Students,models.Assignments)
-         .join(models.Assignments,models.Class_Students.class_id == models.Assignments.class_id)
-         .filter(models.Class_Students.student_id == user.id)
-         .outerjoin(models.Submissions,models.Assignments.id == models.Submissions.assignment_id)
-         .filter(models.Submissions.id == None)
-         .all()
+        db.query(models.Class_Students,models.Assignments,models.Submissions,models.Classes)
+        # join the class_students table with assignments table on class_id
+        .join(models.Assignments,models.Class_Students.class_id == models.Assignments.class_id)
+        # left join the submissions table with the above table on student_id and assignment_id
+        .outerjoin(models.Submissions,(models.Submissions.student_id == user.id) & (models.Submissions.assignment_id == models.Assignments.id))
+        # filter the student id who queried
+        .filter(models.Class_Students.student_id == user.id)
+        # Join the classes table with the class_students table on class_id to get the class name
+        .join(models.Classes,models.Class_Students.class_id == models.Classes.id)
+        # filter the assignments which are not submitted
+        .filter(models.Submissions.id == None)
+        .all()
     )
+
     todos_list = []
+
+    # todos_list = [{"t0": t[0], "t1": t[1],"t2":t[2],"t3":t[3]} for t in todos]
+    # return todos_list
+
     for t in todos:
-        classes = db.query(models.Classes).filter(models.Classes.id == t[0].class_id).first()
+        # classes = db.query(models.Classes).filter(models.Classes.id == t[0].class_id).first()
         todos_list.append({
             "assignment_id": t[1].id,
             "assignment_name": t[1].assignment_name,
             "assignment_description": t[1].assignment_description,
             "class_id": t[0].class_id,
-            "class_name": classes.class_name,
+            "class_name": t[3].class_name,
             "due_date": t[1].assignment_deadline
         })
-    # todos_list = [{"id": t[0].class_id, "assignment_name": t[1]} for t in todos]
     return todos_list
