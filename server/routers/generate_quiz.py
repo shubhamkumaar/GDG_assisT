@@ -17,53 +17,43 @@ Settings = get_settings()
 gemini_api_key = Settings.GENAI_API_KEY
 # genai.configure(api_key=gemini_api_key)
 
-def generate(amount:int=10):
-    print(amount)
+# Generate a quiz from the provided study material
+def generate(amount:int=10,file_names=list[str]):
     client = genai.Client(
         api_key=gemini_api_key,
     )
-
+    
+    # upload the pdf file to gemini
     files = [
-        # Make the file available in local system working directory
-        # client.files.upload(file="AWS BEANSTALK.pdf"),
-        # Make the file available in local system working directory
-        
-        client.files.upload(file="server/public/Performance _metrices.pdf"),
+        client.files.upload(file=file_name) for file_name in file_names
     ]
+    
+    # Attach the files when creating the prompt content
+    part = [types.Part.from_uri(
+      file_uri=files[i].uri,
+      mime_type=files[i].mime_type,
+      )for i in range(len(files))]
+    
     model = "gemini-2.0-flash"
+    
     contents = [
         types.Content(
             role="user",
-            parts=[
-                types.Part.from_uri(
-                    file_uri=files[0].uri,
-                    mime_type=files[0].mime_type,
-                ),
-                # types.Part.from_uri(
-                #     file_uri=files[1].uri,
-                #     mime_type=files[1].mime_type,
-                # ),
+            parts= part + [
                 types.Part.from_text(text=f"""I am sharing some study material please make a {amount}-question quiz with the options from that material
-
-Don't include any messages like
-
+From the resources provided, equally distribute the questions from all the resources.
+Don't include any messages like greetings or introduction. Just provide the quiz in JSON format.
+Also ignore these types of messages in the response:-
 - Okay, here's a 20-question quiz based on the provided material:
-
 - I cannot generate 20 questions. I can only do 10 questions.
 
 Condition to generate the response
-
 - You mustn't include any greetings or an introduction. the only response I need is the JSON.
-
 - Always give me the response in JSON format only.
-
-- The Trailling comma should be removed from all the options and question of the options list as well as question list.                                     
-
-- The Trailling comma should be removed from the last option of the options list.
-                                     
+- The Trailling comma should be removed from all the options and question of the options list as well as question list.
+- The Trailling comma should be removed from the last option of the options list.                               
 - The Trailling comma should be removed from the last question of the quiz list.
                                                                           
-
 The response should be in JSON format, like
 {{ \"quiz\":[
 {{
@@ -296,8 +286,9 @@ The response should be in JSON format, like
             ],
         ),
     ]
+    
     generate_content_config = types.GenerateContentConfig(
-        temperature=2,
+        temperature=0.8,
         top_p=0.95,
         top_k=40,
         max_output_tokens=8192,
@@ -318,5 +309,5 @@ The response should be in JSON format, like
 
 @router.post("/generate_quiz")
 async def generate_quiz():
-    res = generate(5)
+    res = generate(20,['server/public/AWS BEANSTALK.pdf','server/public/Route 53.pdf'])
     return {"message": "Quiz generated successfully", "status": 200, "res":res}
