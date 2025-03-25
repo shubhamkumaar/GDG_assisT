@@ -1,12 +1,14 @@
-from fastapi import FastAPI,Depends,HTTPException,status
+from fastapi import FastAPI,Depends
 from typing import Annotated
-from fastapi.responses import JSONResponse
-from .routers import check_answer, feedback, auth, assignment, home, classes
-from server.db.database import get_db
-import server.db.models as models
-from sqlalchemy.orm import Session
-from .routers.auth import verify_jwt_token
+from .routers import check_answer, feedback, auth, assignment, home, classes, profile, generate_quiz
 from starlette.middleware.sessions import SessionMiddleware
+import json
+import pathlib
+import httpx
+# from server.db.database import get_db
+# import server.db.models as models
+# # from sqlalchemy.orm import Session
+# from .routers.auth import verify_jwt_token
 
 app = FastAPI()
 
@@ -18,20 +20,17 @@ app.include_router(auth.router)
 app.include_router(home.router)
 app.include_router(assignment.router)
 app.include_router(classes.router)
+app.include_router(profile.router)
+app.include_router(generate_quiz.router)
+# db_dependency = Annotated[Session, Depends(get_db)]
+# user_dependency = Annotated[models.User, Depends(verify_jwt_token)]    
 
-db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[models.User, Depends(verify_jwt_token)]    
-
-@app.get("/",status_code=status.HTTP_200_OK)
-async def user(user:user_dependency,db: db_dependency):
-    if user is None:
-        raise HTTPException(status_code=404, detail="Authentication required")
-    content = {"user": user.name, "email": user.email, "phone": user.phone, "is_teacher": user.is_teacher}
-    response = JSONResponse(content=content)    
-    response.set_cookie(key="user_id", value=str(user.id))
-    response.set_cookie(key="user_name", value=user.name)
-    response.set_cookie(key="user_email", value=user.email)
-    response.set_cookie(key="user_phone", value=user.phone)
-    response.set_cookie(key="is_teacher", value=user.is_teacher)
-    return response
-    
+@app.get("/")
+def read_root():
+   # file_path = pathlib.Path("server/public/quiz.pdf")
+   # url = "https://storage.googleapis.com/gdg-assist/07812d4d_22BCE11326MIDTERMCSE2004.pdf"
+   # file_path.write_bytes(httpx.get(url).content)
+   # return {"Hello": "World"}
+    with open('server/public/quiz.json', 'r') as file:
+       data = json.load(file)
+    return data
