@@ -6,18 +6,89 @@ import { Link } from 'react-router-dom';
 export default function ClassBox() {
 
   const [notification, setNotification] = useState(false);
-  
+  // const [classroomBox, setClassroomBox] = useState([{}]);
+
+  // setClassroomBox([
+  //   {
+  //     name: 'Math',
+  //     teacher: 'Mr. John',
+  //     notification: true,
+  //     to: 'for class'
+  //   },
+  //   {
+  //     name: 'Science',
+  //     teacher: 'Mr. John',
+  //     notification: false,
+  //     to: 'for class'
+  //   },
+  //   {
+  //     name: 'History',
+  //     teacher: 'Mr. John',
+  //     notification: true,
+  //     to: 'for class'
+  //   },
+  //   {
+  //     name: 'Math',
+  //     teacher: 'Mr. John',
+  //     notification: true,
+  //     to: 'for class'
+  //   },
+  //   {
+  //     name: 'Science',
+  //     teacher: 'Mr. John',
+  //     notification: false,
+  //     to: 'for class'
+  //   },
+  //   {
+  //     name: 'History',
+  //     teacher: 'Mr. John',
+  //     notification: true,
+  //     to: 'for class'
+  //   },
+  //   {
+  //     name: 'Math',
+  //     teacher: 'Mr. John',
+  //     notification: true,
+  //     to: 'for class'
+  //   },
+  //   {
+  //     name: 'Science',
+  //     teacher: 'Mr. John',
+  //     notification: false,
+  //     to: 'for class'
+  //   },
+  //   {
+  //     name: 'History',
+  //     teacher: 'Mr. John',
+  //     notification: true,
+  //     to: 'for class'
+  //   },
+  //   {
+  //     name: 'Math',
+  //     teacher: 'Mr. John',
+  //     notification: true,
+  //     to: 'for class'
+  //   },
+  //   {
+  //     name: 'Science',
+  //     teacher: 'Mr. John',
+  //     notification: false,
+  //     to: 'for class'
+  //   },
+  // ]);
+
+  // console.log(classroomBox);
+
+
   return (
     <>
      <Link
         className="bg-[#8591ad] w-[20rem] h-[21rem] rounded-2xl mt-12 ml-16"
         to="/classroom">
 
-    {/* <div className=''> */}
-
       <div className='flex flex-row items-center justify-between'>
         <div className="flex flex-col justify-between p-4">
-          <div className="text-3xl font-semibold text-[#F2F4F8] cursor-pointer ml-6" >Name</div>
+          <div className="text-3xl font-semibold text-[#F2F4F8] cursor-pointer ml-6" >name</div>
           <div className="text-2xl font-medium text-[#F2F4F8] cursor-pointer ml-6" >Teacher</div>
         </div>
         <div className="flex flex-row justify-center p-4">
@@ -55,7 +126,6 @@ export default function ClassBox() {
           src="OtherPage.svg" alt="OtherPage" />
       </div>
 
-    {/* </div> */}
     </Link>
     </>
   )
