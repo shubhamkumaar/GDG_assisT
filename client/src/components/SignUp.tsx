@@ -1,27 +1,39 @@
-import React, { useState } from 'react';
-import { FcGoogle } from 'react-icons/fc';
-import { Link } from 'react-router-dom';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import React, { useState } from "react";
+import { FcGoogle } from "react-icons/fc";
+import { Link } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { signupUser } from "../store/auth/authSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../store/store";
+import { useNavigate } from "react-router-dom";
 
 export default function SignUpPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert("Passwords don't match!");
       return;
     }
-    console.log('Signing up with:', { name, email, password });
+    try {
+      dispatch(signupUser({ name, email, password }));
+      // console.log(e);
+      navigate("/");
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const handleGoogleSignUp = () => {
-    console.log('Signing up with Google');
+    console.log("Signing up with Google");
   };
 
   const togglePasswordVisibility = () => {
@@ -36,19 +48,27 @@ export default function SignUpPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create your account</h2>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            Create your account
+          </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
               Sign in
             </Link>
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Full Name
               </label>
               <input
@@ -64,7 +84,10 @@ export default function SignUpPage() {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <input
@@ -80,7 +103,10 @@ export default function SignUpPage() {
               />
             </div>
             <div className="relative">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
@@ -107,7 +133,10 @@ export default function SignUpPage() {
               </button>
             </div>
             <div className="relative">
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirm-password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Confirm Password
               </label>
               <input
@@ -144,7 +173,14 @@ export default function SignUpPage() {
               required
             />
             <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
-              I agree to the <Link to="/terms" className="text-blue-600">Terms</Link> and <Link to="/privacy" className="text-blue-600">Privacy Policy</Link>
+              I agree to the{" "}
+              <Link to="/terms" className="text-blue-600">
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="text-blue-600">
+                Privacy Policy
+              </Link>
             </label>
           </div>
 
@@ -164,7 +200,9 @@ export default function SignUpPage() {
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or sign up with</span>
+              <span className="px-2 bg-white text-gray-500">
+                Or sign up with
+              </span>
             </div>
           </div>
 
@@ -181,5 +219,4 @@ export default function SignUpPage() {
       </div>
     </div>
   );
-};
- 
+}
