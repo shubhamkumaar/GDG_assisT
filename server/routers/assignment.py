@@ -24,6 +24,22 @@ async def get_assignment(assignment_id:str,user:user_dependency,db: db_dependenc
     assignment = db.query(models.Assignments).filter(models.Assignments.id == assignment_id.strip()).first()
     if assignment is None:
         raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    if user.is_teacher:
+        teacher_class = db.query(models.Classes).filter(models.Classes.id == assignment.class_id).first()
+        if teacher_class.teacher_id != user.id:
+            raise HTTPException(status_code=403, detail="Forbidden")
+    
+    student_class = (
+        db.query(models.Class_Students)
+        .filter(models.Class_Students.student_id == user.id)
+        .filter(models.Class_Students.class_id == assignment.class_id)
+        .first()
+        )
+    
+    if student_class is None:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
     if user.is_teacher:
         return {
             "assignment_id": assignment.id,
@@ -93,10 +109,20 @@ async def submit_assignment(assignment_id:int,file:UploadFile,user: user_depende
     
     if user.is_teacher:
         raise HTTPException(status_code=403, detail="Forbidden")
-    
+        
     assignment = db.query(models.Assignments).filter(models.Assignments.id == assignment_id).first()
     if assignment is None:
         raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    student_class = (
+        db.query(models.Class_Students)
+        .filter(models.Class_Students.student_id == user.id)
+        .filter(models.Class_Students.class_id == assignment.class_id)
+        .first()
+        )
+    
+    if student_class is None:
+        raise HTTPException(status_code=403, detail="Forbidden")
     
     res = await upload_file(file)
     try:
@@ -125,6 +151,10 @@ async def upload_answer_key(assignment_id:int,file:UploadFile,user: user_depende
     if assignment is None:
         raise HTTPException(status_code=404, detail="Assignment not found")
     
+    teacher_class = db.query(models.Classes).filter(models.Classes.id == assignment.class_id).first()
+    if teacher_class.teacher_id != user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
     res = await upload_file(file)
     assignment.answer_key = res["file_url"]
     db.commit()
@@ -139,9 +169,26 @@ async def get_submissions(assignment_id:int,user: user_dependency, db: db_depend
     if not user.is_teacher:
         raise HTTPException(status_code=403, detail="Forbidden")
     
+    
     assignment = db.query(models.Assignments).filter(models.Assignments.id == assignment_id).first()
     if assignment is None:
         raise HTTPException(status_code=404, detail="Assignment not found")
     
-    submissions = db.query(models.Submissions).filter(models.Submissions.assignment_id == assignment_id).all()
-    return submissions
+    teacher_class = db.query(models.Classes).filter(models.Classes.id == assignment.class_id).first()
+    if teacher_class.teacher_id != user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    submissions = (
+        db.query(models.Submissions,models.User)
+        .filter(models.Submissions.assignment_id == assignment_id) 
+        .join(models.User,models.User.id == models.Submissions.student_id)
+        .all())
+    return [
+        {
+            "submission_id": submission[0].id,
+            "student_name": submission[1].name,
+            "student_email": submission[1].email,
+            "submission_file": submission[0].submission_file
+        }
+        for submission in submissions
+    ]
