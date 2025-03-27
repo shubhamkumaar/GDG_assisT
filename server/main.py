@@ -5,6 +5,7 @@ from starlette.middleware.sessions import SessionMiddleware
 import json
 import pathlib
 import httpx
+from fastapi.middleware.cors import CORSMiddleware
 # from server.db.database import get_db
 # import server.db.models as models
 # # from sqlalchemy.orm import Session
@@ -13,6 +14,14 @@ import httpx
 app = FastAPI()
 
 app.add_middleware(SessionMiddleware, secret_key="your_secret_key_here")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(feedback.router)
 app.include_router(check_answer.router)
