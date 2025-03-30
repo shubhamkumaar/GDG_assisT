@@ -1,26 +1,24 @@
-import { createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 
 export interface isTeacherPageState {
-    isTeacher: boolean;
-  }
+  isTeacher: boolean;
+}
 
-  const initialState: isTeacherPageState = {
-    isTeacher: true,
-  }
-
+const initialState: isTeacherPageState = {
+  isTeacher: true,
+};
 
 export const isTeacherSlice = createSlice({
-  name: 'isTeacherPage',
+  name: "isTeacherPage",
   initialState,
   reducers: {
     isTeacherState: (state, action: PayloadAction<boolean>) => {
-        state.isTeacher = action.payload
-      }
+      state.isTeacher = action.payload;
+    },
   },
-})
+});
 
+export const { isTeacherState } = isTeacherSlice.actions;
 
-export const { isTeacherState } = isTeacherSlice.actions
-
-export default isTeacherSlice.reducer
+export default isTeacherSlice.reducer;
