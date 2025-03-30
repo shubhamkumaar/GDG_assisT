@@ -1,10 +1,18 @@
-import base64
 import os
 from google import genai
 from google.genai import types
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Depends,Form, status
 from functools import lru_cache
 from server import config
+from pptx2md import convert, ConversionConfig
+from pathlib import Path
+from sqlalchemy.orm import Session
+from server.db.database import get_db
+from typing import Annotated
+import server.db.models as models
+from server.routers.auth import verify_jwt_token
+import requests
+from urllib.parse import urlparse
 
 router = APIRouter()
 
@@ -13,6 +21,9 @@ def get_settings():
     return config.Settings()
 
 Settings = get_settings()
+
+db_dependency = Annotated[Session, Depends(get_db)]
+user_dependency = Annotated[models.User, Depends(verify_jwt_token)]
 
 gemini_api_key = Settings.GENAI_API_KEY
 # genai.configure(api_key=gemini_api_key)
@@ -303,11 +314,124 @@ The response should be in JSON format, like
         print(chunk.text, end="")
         res += chunk.text
     with open("server/public/quiz.json", "w") as f:
-        f.write(res)    
+        f.write(res)          
     return res
 
 
 @router.post("/generate_quiz")
-async def generate_quiz():
-    res = generate(20,['server/public/AWS BEANSTALK.pdf','server/public/Route 53.pdf'])
-    return {"message": "Quiz generated successfully", "status": 200, "res":res}
+async def generate_quiz(user:user_dependency, db: db_dependency, material_ids_string: str = Form(...), class_id:str = Form(...), amount: int = Form(...)):
+  # Provide the number of questions and material id as a string separeated by {,}
+  
+  # Convert the string of material IDs into a list of integers
+  material_ids = [int(id.strip()) for id in material_ids_string.split(',')]
+  if not material_ids:
+      raise HTTPException(status_code=400, detail="Material IDs are required")
+  if amount <= 0:
+      raise HTTPException(status_code=400, detail="Amount must be greater than 0")
+  if not class_id:
+      raise HTTPException(status_code=400, detail="Class ID is required")    
+      
+  # Check if the user is a teacher
+  if user.is_teacher != True:
+      raise HTTPException(status_code=403, detail="Only teachers can generate quizzes")
+      
+  # Check if the class_id is valid
+  db_class = db.query(models.Classes).filter(models.Classes.id == class_id.strip()).first()
+  
+  if db_class is None:
+      raise HTTPException(status_code=404, detail="Class not found")
+    
+  # Check if the user is the teacher of the class
+  if db_class.teacher_id != user.id:
+      raise HTTPException(status_code=403, detail="You are not authorized to generate quizzes for this class")
+    
+    
+  # Check if the materials exist in the database and match the class_id
+  materials = (
+    db.query(models.Materials.material_file)
+    .filter(models.Materials.id.in_(material_ids))
+    .filter(models.Materials.class_id == class_id.strip())
+    .all()
+    )
+  if materials is None:
+      raise HTTPException(status_code=404, detail="Material not found")
+    
+  file_url = [material[0] for material in materials]
+  files = []
+  for url in file_url:
+      if not url.startswith("http"):
+          raise HTTPException(status_code=400, detail="Invalid URL format")
+      response = requests.get(url, stream=True)
+      if response.status_code != 200:
+          raise HTTPException(status_code=404, detail="File not found")
+      
+      # Extract the filename from the URL path
+      parsed_url = urlparse(url)
+      filename = parsed_url.path.split('/')[-1]
+      file_path = os.path.join("server/public/", filename)
+      
+      format = filename.split(".")[-1]
+      # Check if the file is a PDF or PPT
+      if format not in ["pdf", "ppt", "pptx","txt"]:
+          raise HTTPException(status_code=400, detail="Invalid file format. Only PDF and PPT files are supported.")
+      
+      # Save the file locally
+      with open(file_path, 'wb') as file:
+          for chunk in response.iter_content(chunk_size=8192):
+              file.write(chunk)
+      
+      # Convert .ppt to .pptx newer version of presentation 
+      if format == "ppt":
+        os.system(f"libreoffice --headless --convert-to pptx --outdir server/public/ {file_path}")
+        os.remove(file_path)
+        file_path = file_path.replace(".ppt", ".pptx")
+        print(file_path)  
+      
+        # Convert pptx to md
+      output_path = Path(f"server/public/{file_path.split('/')[-1].replace('.pptx', '.md')}")
+      if format == "pptx":
+        convert(
+           ConversionConfig(
+               pptx_path=file_path,
+               output_path=output_path,
+               image_dir="server/public/images",
+               disable_image=True
+           )
+        )
+        file_path = output_path
+      files.append(file_path)   
+  
+  print("Amount:", amount)
+  res = generate(amount,files)
+  
+  # Remove the files after processing from server/public
+  for file in files:
+    os.remove(file)
+  return {"message": "Quiz generated successfully", "status": 200, "res":res}  
+    
+  
+  # Save the file locally
+  with open(file_path, 'wb') as file:
+      for chunk in response.iter_content(chunk_size=8192):
+          file.write(chunk)
+          
+  return {"message": "Quiz generated successfully", "status": 200, "res":file_path}
+  
+  # Convert .ppt to .pptx newer version of presentation
+  # file_path = "server/public/general-ppt.ppt"
+  #   os.system(f"libreoffice --headless --convert-to pptx --outdir server/public/ {file_path}")
+  #   os.remove(file_path)
+  #   file_path = file_path.replace(".ppt", ".pptx")
+  #   print(file_path)
+  
+  # Convert pptx to md
+  # convert(
+  #     ConversionConfig(
+  #         pptx_path=Path('server/public/Unit-4 PArt-II Congestion Control and Quality.pptx'),
+  #         output_path=Path('server/public/output.md'),
+  #         image_dir=Path('server/public/img'),
+  #         disable_notes=True
+  #     )
+  # )
+  # return {"message":"Converted successfully","status":200}   
+    

@@ -3,9 +3,10 @@ from typing import Annotated
 from .routers import check_answer, feedback, auth, assignment, home, classes, profile, generate_quiz
 from starlette.middleware.sessions import SessionMiddleware
 import json
-import pathlib
-import httpx
+from pptx2md import convert, ConversionConfig
+from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
+import os
 # from server.db.database import get_db
 # import server.db.models as models
 # # from sqlalchemy.orm import Session
@@ -36,10 +37,26 @@ app.include_router(generate_quiz.router)
 
 @app.get("/")
 def read_root():
+   # Remove all the spaces file path
+   file_path = "server/public/pres.ppt"
+   os.system(f"libreoffice --headless --convert-to pptx --outdir server/public/ {file_path}")
+   # os.remove(file_path)
+   file_path = file_path.replace(".ppt", ".pptx")
+   output_path = Path(f"server/public/{file_path.split('/')[-1].replace('.pptx', '.md')}")
+   print(file_path)  
+   convert(
+      ConversionConfig(
+          pptx_path=file_path,
+          output_path=output_path,
+          image_dir="server/public/images",
+          disable_image=True
+      )
+   )
+   return output_path
    # file_path = pathlib.Path("server/public/quiz.pdf")
    # url = "https://storage.googleapis.com/gdg-assist/07812d4d_22BCE11326MIDTERMCSE2004.pdf"
    # file_path.write_bytes(httpx.get(url).content)
    # return {"Hello": "World"}
-    with open('server/public/quiz.json', 'r') as file:
+   with open('server/public/quiz.json', 'r') as file:
        data = json.load(file)
-    return data
+   return data
