@@ -64,6 +64,10 @@ async def join_class(class_id: str, user:user_dependency, db: db_dependency) :
     if user.is_teacher:
         raise HTTPException(status_code=403, detail="Forbidden")
     
+    isAlreadyJoined = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id).first()
+    if isAlreadyJoined is not None:
+        raise HTTPException(status_code=403, detail="Already joined the class")
+    
     class_student = models.Class_Students(
         class_id=class_id,
         student_id=user.id
