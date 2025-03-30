@@ -60,11 +60,15 @@ export const signupUser = createAsyncThunk(
 );
 
 export const googleLogin = createAsyncThunk(
-  "/auth/googlelogin",
-  async (_, { rejectWithValue }) => {
+  "auth/googlelogin",
+  async (googleToken: string, { rejectWithValue }) => {
     try {
-      const response = await api.get("/auth/google/login");
-      window.location.href = response.data; // Redirect user to Google OAuth
+      const response = await api.get("/auth/google/login", {
+        token: googleToken,
+      });
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.access_token);
+      return response.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || "Login Failed");
     }
@@ -76,8 +80,10 @@ export const googleCallback = createAsyncThunk(
   async (code: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/auth/google/callback?code=${code}`);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.access_token);
-      return response.data.user;
+      console.log(response);
+      return response.data;
     } catch (err: any) {
       return rejectWithValue(
         err.response?.data?.message || "Google login failed"
@@ -95,26 +101,14 @@ export const logoutUser = createAsyncThunk("auth/logout", async () => {
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {
-    setUser: (state, action) => {
-      state.user = action.payload.user;
-      state.token = action.payload.access_token;
-      state.isAuthenticated = true;
-    },
-    logout: (state) => {
-      state.user = null;
-      state.token = null;
-      state.error = null;
-      state.isAuthenticated = false;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
+      // Login
       .addCase(loginUser.pending, (state) => {
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        // state.token = action.payload.token;
         state.user = action.payload.user;
         state.token = action.payload.access_token;
         state.isAuthenticated = true;
@@ -122,9 +116,8 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.error = action.payload as string;
       })
-      .addCase(signupUser.pending, (state) => {
-        state.error = null;
-      })
+
+      //  Signup
       .addCase(signupUser.fulfilled, (state, action) => {
         state.user = action.payload.user;
         state.token = action.payload.access_token;
@@ -133,18 +126,32 @@ const authSlice = createSlice({
       .addCase(signupUser.rejected, (state, action) => {
         state.error = action.payload as string;
       })
+
+      //  Google Login
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.token = action.payload.access_token;
+        state.isAuthenticated = true;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+
+      // Google Callback
+      .addCase(googleCallback.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.token = action.payload.access_token;
+        state.isAuthenticated = true;
+      })
+      .addCase(googleCallback.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+
+      // Logout
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
-      })
-      .addCase(googleCallback.fulfilled, (state, action) => {
-        state.user = action.payload.user;
-        state.token = action.payload.access_token; // Ensure token is stored
-        state.error = null;
-      })
-      .addCase(googleCallback.rejected, (state, action) => {
-        state.error = action.payload as string;
       });
   },
 });

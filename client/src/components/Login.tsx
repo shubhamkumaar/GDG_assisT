@@ -2,13 +2,14 @@ import React, {
   // useEffect,
   useState,
 } from "react";
-import { FcGoogle } from "react-icons/fc";
 import {
   useDispatch,
+  useSelector,
   // useSelector
 } from "react-redux";
 import { AppDispatch } from "../store/store";
 import {
+  googleLogin,
   // googleCallback,
   // googleLogin,
   loginUser,
@@ -18,12 +19,14 @@ import {
   // useSearchParams
 } from "react-router-dom";
 // import { RootState } from "@reduxjs/toolkit/query";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  // const token = useSelector(state=>Root)
 
   // const [searchParams] = useSearchParams();
   // const { user, error } = useSelector((state: RootState) => state.auth);
@@ -43,10 +46,13 @@ export default function LoginPage() {
     navigate("/");
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async (response: any) => {
     // console.log("Logging in with Google");
-    window.location.href = "http://127.0.0.1:8000/auth/google/login";
     // dispatch(googleLogin());
+    console.log(response.credential);
+    if (response.credential) {
+      dispatch(googleLogin(response.credential));
+    }
   };
 
   return (
@@ -147,15 +153,13 @@ export default function LoginPage() {
               </span>
             </div>
           </div>
-
-          <div className="mt-6">
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <FcGoogle className="h-5 w-5 mr-2" />
-              Sign in with Google
-            </button>
+          <div className="mt-6 flex justify-center">
+            <GoogleLogin
+              // clientId="564727465848-lfgrau28p1p9mp1tf0umv73ua9r9behi.apps.googleusercontent.com"
+              onSuccess={handleGoogleLogin}
+              onError={() => console.log("Google Login Failed")}
+              // redirectUri="http://localhost:5173"
+            />
           </div>
         </div>
       </div>
