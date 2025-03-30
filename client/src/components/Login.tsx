@@ -1,15 +1,39 @@
-import React, { useState } from "react";
+import React, {
+  // useEffect,
+  useState,
+} from "react";
 import { FcGoogle } from "react-icons/fc";
-import { useDispatch } from "react-redux";
+import {
+  useDispatch,
+  // useSelector
+} from "react-redux";
 import { AppDispatch } from "../store/store";
-import { loginUser } from "../store/auth/authSlice";
-import { useNavigate } from "react-router-dom";
+import {
+  // googleCallback,
+  // googleLogin,
+  loginUser,
+} from "../store/auth/authSlice";
+import {
+  useNavigate,
+  // useSearchParams
+} from "react-router-dom";
+// import { RootState } from "@reduxjs/toolkit/query";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+
+  // const [searchParams] = useSearchParams();
+  // const { user, error } = useSelector((state: RootState) => state.auth);
+
+  // useEffect(() => {
+  //   const code = searchParams.get("code");
+  //   if (code) {
+  //     dispatch(googleCallback(code));
+  //   }
+  // }, [dispatch, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +44,9 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    console.log("Logging in with Google");
+    // console.log("Logging in with Google");
+    window.location.href = "http://127.0.0.1:8000/auth/google/login";
+    // dispatch(googleLogin());
   };
 
   return (

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+import secrets
 from fastapi.responses import JSONResponse
 from server.db.database import engine, get_db
 import server.db.models as models
@@ -145,7 +146,7 @@ async def login_for_access_token(data: LoginRequest,db: db_dependency):
     access_token = create_access_token(
         user.email,user.id, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer","user": {"email": user.email,"name": user.name}}
 
 def authenticate_user(email: str, password: str,db: db_dependency):
     """This function is used to check if the user exists in the database or not.The user is queried from the database if no user found it return false if a user was the found the sent password is verified with saved password in database using bcrypt_context and return the user finally"""
@@ -189,23 +190,64 @@ def verify_jwt_token(token: Annotated[str,Depends(oauth2_bearer)],db: db_depende
 @router.get("/google/login")
 async def google_login(request: Request):
     """Redirects the user to Google Authentication"""
+    # return request.session
+    # request.session.clear() 
+    # print(request)
+    # return request.session
+    # print("Request Session",request.session)
+    state = secrets.token_urlsafe(16)
+    # print(state)
+    request.session["oauth_state"] = state
+    print(f"🟢 State stored in session: {request.session.get('oauth_state')}")
+    
     redirect_uri = "http://localhost:8000/auth/google/callback"
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+    response = await oauth.google.authorize_redirect(request, redirect_uri,state=state)
+    state = request.query_params.get("state")
+    request.session["oauth_state"] = state
+    # for key in request.session.keys():
+    #     if key.startswith("_state_google_"):  # Identify OAuth state key
+    #         request.session["oauth_state"] = request.session[key]
+    #         print("Stored OAuth State:", request.session["oauth_state"])
+    #         break 
+    # state = request.session.get("_state_google")
+    # print("State recoved :",state)
+    # request.session["oauth_state"] = state
+    # print(response.headers.get("location"))
+    return response
 
 # Changed it to get for testing
-@router.get("/google/callback")
-async def google_callback(request: Request,db: db_dependency):
+@router.api_route("/google/callback", methods=["GET", "POST"])
+async def google_callback(request: Request, db: db_dependency):
     """this handles the google Oauth callback and generates the jwt. tbis does by first authorizing the request object and then getting the user info by parsing the id token then query for the user in database if the user is not in database add it then create the access token and return it"""
-    try:
-        token = await oauth.google.authorize_access_token(request)
-    except Exception as e:
-        print("OAuth Error:", str(e))
-        raise HTTPException(
-            status_code = status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail = "Error in login user from google",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-    
+    # print(f"Received request: {request.method}")
+    # print(request)
+    # state_received = request.query_params.get("state")
+    # print(state_received)
+    # state_stored = request.session.get("oauth_state")
+    # print(state_stored)
+    # print(request.session)
+    # # For verification if it works afterwards
+    # # if state_stored is None:
+    # #     # state_stored = state_received
+    # #     request.session["oauth_state"] = state_received
+    # if not state_stored:
+    #     raise HTTPException(status_code=400, detail="OAuth state missing from session. Session expired?")
+
+    # if state_received != state_stored:
+    #     raise HTTPException(status_code=400, detail="Invalid state parameter. Possible CSRF attack!")
+    # return request.session
+    # state = 
+    # try:
+        # print("Fine untill here")
+    token = await oauth.google.authorize_access_token(request)
+    # except Exception as e:
+    #     print("OAuth Error:", str(e))
+    #     raise HTTPException(
+    #         status_code = status.HTTP_405_METHOD_NOT_ALLOWED,
+    #         detail = "Error in login user from google",
+    #         headers={"WWW-Authenticate": "Bearer"}
+    #     )
+    # print(request.query_params.get("state"))
     # user_info = await oauth.google.parse_id_token(request,token)
     user_info = token['userinfo']
     email = user_info["email"]
@@ -237,6 +279,7 @@ async def google_callback(request: Request,db: db_dependency):
     access_token = create_access_token(
         email, user.id, expires_delta=access_token_expires
     )
+    # return {"token": token,"message": "Well successfully genertated"}
     return {"access_token": access_token, "token_type": "bearer","user":{"new_user":new_user,"name":name,"email":email,"picture":user_info['picture']}, "message": "Login Successful with Google"}
 
 @router.post("/protected")
@@ -251,3 +294,4 @@ async def logout(request: Request,token: Optional[str] = None):
         token_blacklist.add(token)
 
     return RedirectResponse(url="/")
+
