@@ -53,10 +53,3 @@ def read_root():
       )
    )
    return output_path
-   # file_path = pathlib.Path("server/public/quiz.pdf")
-   # url = "https://storage.googleapis.com/gdg-assist/07812d4d_22BCE11326MIDTERMCSE2004.pdf"
-   # file_path.write_bytes(httpx.get(url).content)
-   # return {"Hello": "World"}
-   with open('server/public/quiz.json', 'r') as file:
-       data = json.load(file)
-   return data

@@ -409,29 +409,3 @@ async def generate_quiz(user:user_dependency, db: db_dependency, material_ids_st
     os.remove(file)
   return {"message": "Quiz generated successfully", "status": 200, "res":res}  
     
-  
-  # Save the file locally
-  with open(file_path, 'wb') as file:
-      for chunk in response.iter_content(chunk_size=8192):
-          file.write(chunk)
-          
-  return {"message": "Quiz generated successfully", "status": 200, "res":file_path}
-  
-  # Convert .ppt to .pptx newer version of presentation
-  # file_path = "server/public/general-ppt.ppt"
-  #   os.system(f"libreoffice --headless --convert-to pptx --outdir server/public/ {file_path}")
-  #   os.remove(file_path)
-  #   file_path = file_path.replace(".ppt", ".pptx")
-  #   print(file_path)
-  
-  # Convert pptx to md
-  # convert(
-  #     ConversionConfig(
-  #         pptx_path=Path('server/public/Unit-4 PArt-II Congestion Control and Quality.pptx'),
-  #         output_path=Path('server/public/output.md'),
-  #         image_dir=Path('server/public/img'),
-  #         disable_notes=True
-  #     )
-  # )
-  # return {"message":"Converted successfully","status":200}   
-    
