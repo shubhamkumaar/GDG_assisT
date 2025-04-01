@@ -318,7 +318,7 @@ The response should be in JSON format, like
     return res
 
 
-@router.post("/generate_quiz")
+@router.post("/generate_quiz",status_code=status.HTTP_200_OK)
 async def generate_quiz(user:user_dependency, db: db_dependency, material_ids_string: str = Form(...), class_id:str = Form(...), amount: int = Form(...)):
   # Provide the number of questions and material id as a string separeated by {,}
   
@@ -372,7 +372,7 @@ async def generate_quiz(user:user_dependency, db: db_dependency, material_ids_st
       
       format = filename.split(".")[-1]
       # Check if the file is a PDF or PPT
-      if format not in ["pdf", "ppt", "pptx","txt"]:
+      if format not in ["pdf", "ppt", "pptx","txt","doc","docx"]:
           raise HTTPException(status_code=400, detail="Invalid file format. Only PDF and PPT files are supported.")
       
       # Save the file locally
@@ -387,7 +387,7 @@ async def generate_quiz(user:user_dependency, db: db_dependency, material_ids_st
         file_path = file_path.replace(".ppt", ".pptx")
         print(file_path)  
       
-        # Convert pptx to md
+      # Convert pptx to md
       output_path = Path(f"server/public/{file_path.split('/')[-1].replace('.pptx', '.md')}")
       if format == "pptx":
         convert(
@@ -399,13 +399,30 @@ async def generate_quiz(user:user_dependency, db: db_dependency, material_ids_st
            )
         )
         file_path = output_path
+        
+      # Conver docx to md  
+      if format == "doc" or format == "docx":
+        os.system(f"pandoc -f docx -t gfm {file_path} -o {file_path}/question.md")
+        if format == "docx":
+          file_path = file_path.replace(".docx", ".md")
+        if format == "doc":
+          file_path = file_path.replace(".doc", ".md")
+        file_path = f"{file_path}/question.md"
       files.append(file_path)   
+      
+  # Check if the files are empty
+  for file in files:
+      if os.path.getsize(file) == 0:
+          raise HTTPException(status_code=400, detail=f"File {file} is empty")
+  if len(files) == 0:
+      raise HTTPException(status_code=400, detail="No files provided")
   
+  # Generate quiz
   print("Amount:", amount)
-  res = generate(amount,files)
+  res = generate(int(amount),files)
   
   # Remove the files after processing from server/public
   for file in files:
     os.remove(file)
-  return {"message": "Quiz generated successfully", "status": 200, "res":res}  
+  return {"message": "Quiz generated successfully","response":res}  
     
