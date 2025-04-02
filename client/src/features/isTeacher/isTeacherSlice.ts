@@ -6,7 +6,7 @@ export interface isTeacherPageState {
 }
 
 const initialState: isTeacherPageState = {
-  isTeacher: true,
+  isTeacher: false,
 };
 
 export const isTeacherSlice = createSlice({

@@ -132,7 +132,7 @@ async def create_user(user: SignUpRequest,db: db_dependency):
 @router.post("/login", response_model=Token)
 async def login_for_access_token(data: LoginRequest,db: db_dependency):
     """The user is authenticated to check if he exists in the database or not if thier is no user found an exception is raised an access token is created for user session and the corresponding object is returned"""
-    # print(data)
+    
     user = authenticate_user(data.email, data.password,db)
     if not user:
         raise HTTPException(

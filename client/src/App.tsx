@@ -39,11 +39,13 @@ function App() {
         </Route>
 
         {/* Root: Redirect to Dashboard or Login */}
-        <Route path="/" element={<Navigate to="/classroom" />} />
+        {/* <Route path="/" element={<Layout />}/> */}
+        {/* <Route path="/" element={<Navigate to="/home" />} /> */}
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Layout />}>
+          <Route index element={<WorkingPage />} />
             <Route path="classroom" element={<ClassRoomPage />} />
             <Route path="classroom/assignment" element={<AssignmentPage />} />
             <Route

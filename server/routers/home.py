@@ -59,6 +59,8 @@ async def create_class(class_name: str, user:user_dependency, db: db_dependency)
 # Join the class
 @router.post("/join_class",status_code=status.HTTP_201_CREATED)
 async def join_class(class_id: str, user:user_dependency, db: db_dependency) :
+    print(user)
+    print(class_id)
     if user is None:
         raise HTTPException(status_code=404, detail="Authentication required")
     if user.is_teacher:

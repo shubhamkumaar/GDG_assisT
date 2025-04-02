@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import {useDispatch } from 'react-redux';
 import { getClassCode, isJoiningClass } from '../features/joinPage/joinPageSlice';
-
+import axios from 'axios';
 export default function JoinClass() {
     const [classCode, setClassCode] = useState("");
 
@@ -14,6 +14,25 @@ export default function JoinClass() {
         setClassCode("")
     }
 
+    useEffect(()=>{
+        const joinClass = async () => {
+            try {
+                const response = await axios.post("http://localhost:8000/join_class", {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    params: {
+                        class_id: "L-lMxt" 
+                    }
+                });
+                console.log("Joined Class",response.data);
+            
+            } catch (error) {
+                console.error("Error fetching classes:", error);
+            }                    
+        };
+        joinClass();
+    },[])
     return (
         <div className='absolute top-[24rem] left-[54rem] w-[28rem] h-[16rem] flex items-center justify-center z-[69]'>
             <div className='w-full max-w-md mx-4 shadow-xl border border-[#bac4df] rounded-xl bg-[#ced3df] transition-all duration-300 hover:shadow-2xl'>

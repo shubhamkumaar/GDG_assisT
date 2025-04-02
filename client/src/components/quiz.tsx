@@ -29,6 +29,7 @@ const questions: Question[] = [
   },
 ];
 
+
 const Quiz: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({});
