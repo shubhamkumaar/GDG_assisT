@@ -1,5 +1,5 @@
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import axios from "axios";
 export default function TodoPage() {
   const [expandedTodoId, setExpandedTodoId] = useState(null);
   const [newTodoTitle, setNewTodoTitle] = useState("");
@@ -9,7 +9,8 @@ export default function TodoPage() {
       id: 1,
       title: "Todo 1",
       completed: false,
-      discribe: "This is a description of the todo,This is a description of the todo, This is a description of the todo, This is a description of the todo,This is a description of the todo ",
+      discribe:
+        "This is a description of the todo,This is a description of the todo, This is a description of the todo, This is a description of the todo,This is a description of the todo ",
     },
     {
       id: 2,
@@ -28,8 +29,23 @@ export default function TodoPage() {
       title: "Todo 4",
       completed: true,
       discribe: "This is a description of the todo",
-    }
+    },
   ]);
+  useEffect(() => {
+    try {
+      const getTodo = async () => {
+        const response = await axios.get("http://localhost:8000/todo", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        console.log(response.data);
+      };
+      getTodo();
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
 
   const handleTodoClick = (id) => {
     setExpandedTodoId(expandedTodoId === id ? null : id);
@@ -39,24 +55,26 @@ export default function TodoPage() {
     if (newTodoTitle.trim() === "") return;
 
     const newTodo = {
-      id: new Date().getTime(), 
+      id: new Date().getTime(),
       title: newTodoTitle,
       discribe: newTodoDescription,
       completed: false,
     };
 
-    setTodoList([newTodo, ...todoList]); 
+    setTodoList([newTodo, ...todoList]);
     setNewTodoTitle("");
-    setNewTodoDescription(""); 
+    setNewTodoDescription("");
   };
 
   const handleRemoveTodo = (id) => {
-    setTodoList(todoList.filter((todo) => todo.id !== id)); 
+    setTodoList(todoList.filter((todo) => todo.id !== id));
   };
 
   return (
     <div className="flex flex-col justify-around items-center h-full w-full">
-      <h1 className="text-4xl text-center mb-6 font-bold text-[#444d64]">Todo List</h1>
+      <h1 className="text-4xl text-center mb-6 font-bold text-[#444d64]">
+        Todo List
+      </h1>
 
       <div className="h-[11rem] w-[52rem] bg-[#f2f4f8] p-4 rounded-lg shadow-md flex flex-col space-y-2">
         <input
@@ -85,24 +103,38 @@ export default function TodoPage() {
         {todoList.map((todo) => (
           <div
             key={todo.id}
-            className={`flex justify-between items-start w-full bg-white p-4 mb-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border-l-4 ${todo.completed ? "border-green-400" : "border-red-400"} transform transition-all duration-200 cursor-pointer`}
-            onClick={() => handleTodoClick(todo.id)} >
+            className={`flex justify-between items-start w-full bg-white p-4 mb-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border-l-4 ${
+              todo.completed ? "border-green-400" : "border-red-400"
+            } transform transition-all duration-200 cursor-pointer`}
+            onClick={() => handleTodoClick(todo.id)}
+          >
             <div className="flex items-start w-4/5 space-x-4">
-              <div className={`h-10 w-10 ${todo.completed ? "bg-green-100" : "bg-fuchsia-100"} flex items-center justify-center rounded-full hover:${todo.completed ? "bg-green-200" : "bg-red-200"} transition-colors duration-200 flex-shrink-0`}>
+              <div
+                className={`h-10 w-10 ${
+                  todo.completed ? "bg-green-100" : "bg-fuchsia-100"
+                } flex items-center justify-center rounded-full hover:${
+                  todo.completed ? "bg-green-200" : "bg-red-200"
+                } transition-colors duration-200 flex-shrink-0`}
+              >
                 <span
-                  className={`${todo.completed ? "text-green-600" : "text-red-600"} font-semibold`}>
+                  className={`${
+                    todo.completed ? "text-green-600" : "text-red-600"
+                  } font-semibold`}
+                >
                   {todo.completed ? "C" : "I"}
                 </span>
               </div>
 
               <div className="flex flex-col flex-1 space-y-1">
                 <div
-                  className={`text-lg font-semibold ${ todo.completed
+                  className={`text-lg font-semibold ${
+                    todo.completed
                       ? "text-green-800 line-through"
                       : "text-red-800"
-                  } hover:${todo.completed 
-                    ? "text-green-900" 
-                    : "text-red-900"} transition-colors duration-200`}>
+                  } hover:${
+                    todo.completed ? "text-green-900" : "text-red-900"
+                  } transition-colors duration-200`}
+                >
                   {todo.title}
                 </div>
                 {expandedTodoId === todo.id && (
@@ -119,7 +151,8 @@ export default function TodoPage() {
                   e.stopPropagation();
                   handleRemoveTodo(todo.id);
                 }}
-                className="h-10 w-10 bg-fuchsia-100 text-red-600 flex items-center justify-center rounded-lg hover:bg-fuchsia-200 hover:text-red-700 hover:scale-110 transform transition-all duration-200" >
+                className="h-10 w-10 bg-fuchsia-100 text-red-600 flex items-center justify-center rounded-lg hover:bg-fuchsia-200 hover:text-red-700 hover:scale-110 transform transition-all duration-200"
+              >
                 X
               </button>
             </div>

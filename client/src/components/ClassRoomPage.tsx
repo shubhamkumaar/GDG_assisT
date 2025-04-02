@@ -16,8 +16,9 @@ export default function ClassRoomPage() {
     const [classes, setClasses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [AnnouncementArr, setAnnouncement] = useState([]);
-    const [materialArr, setMaterial] = useState([])
-    const [AssignmentArr,setAssignment] = useState([])
+    const [studentArr, setStudent] = useState([])
+    // const [materialArr, setMaterial] = useState([])
+    // const [AssignmentArr,setAssignment] = useState([])
     useEffect(() => {
         const fetchClass = async () => {
             try {
@@ -50,7 +51,7 @@ export default function ClassRoomPage() {
                         class_id:"QX3zH9"
                     }
                 });
-                console.log("Annou",response.data[0]);
+                console.log("Annou",response.data);
                 setAnnouncement(response.data);
                 setLoading(false);
             } catch (error) {
@@ -71,7 +72,7 @@ export default function ClassRoomPage() {
                         class_id:"QX3zH9"
                     }
                 });
-                console.log("Material",response.data[0]);
+                console.log("Material",response.data);
                 setAnnouncement(response.data);
                 setLoading(false);
             } catch (error) {
@@ -92,7 +93,7 @@ export default function ClassRoomPage() {
                         class_id:"QX3zH9"
                     }
                 });
-                console.log("Assignment",response.data[0]);
+                console.log("Assignment",response.data);
                 setAnnouncement(response.data);
                 setLoading(false);
             } catch (error) {
@@ -113,8 +114,8 @@ export default function ClassRoomPage() {
                         class_id:"QX3zH9"
                     }
                 });
-                console.log("Students",response.data[0]);
-                setAnnouncement(response.data);
+                console.log("Students",response.data);
+                setStudent(response.data);
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching classes:", error);

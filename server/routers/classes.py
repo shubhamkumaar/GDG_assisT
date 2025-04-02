@@ -162,8 +162,8 @@ async def post_announcements(
     if user is None:
         raise HTTPException(status_code=404, detail="Authentication required")
     
-    if not user.is_teacher:
-        raise HTTPException(status_code=403, detail="Forbidden")
+    # if not user.is_teacher:
+    #     raise HTTPException(status_code=403, detail="Forbidden")
     
     if user.is_teacher:
         class_teacher = db.query(models.Classes).filter(models.Classes.id == class_id.strip()).first()

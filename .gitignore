@@ -50,3 +50,5 @@ node_modules/
 
 # generated files
 public/
+
+.vite/

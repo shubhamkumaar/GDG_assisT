@@ -16,18 +16,17 @@ const initialState: AuthState = {
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (
-    credentials: { email: string; password: string },
+    credentials: { username: string; password: string },
     { rejectWithValue }
   ) => {
     try {
-      // console.log(credentials);
       // const data = JSON.stringify(credentials);
       const response = await api.post("/auth/login", credentials, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-      console.log(response);
+      console.log(response.data);
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.access_token);
       return response.data;
