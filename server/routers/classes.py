@@ -48,10 +48,10 @@ async def get_assignments(class_id:str,user:user_dependency,db: db_dependency):
         class_teacher = db.query(models.Classes).filter(models.Classes.id == class_id.strip()).first()
         if class_teacher.teacher_id != user.id:
             raise HTTPException(status_code=403, detail="Forbidden")
-    
-    class_student = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id.strip()).first()  
-    if class_student is None:
-        raise HTTPException(status_code=403, detail="Forbidden")  
+    else:
+       class_student = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id.strip()).first()  
+       if class_student is None:
+           raise HTTPException(status_code=403, detail="Forbidden")  
     
     assignments = db.query(models.Assignments).filter(models.Assignments.class_id == class_id.strip()).all()
     return [{"assignment_id": a.id, "assignment_name": a.assignment_name,"description":a.assignment_description,"deadline":a.assignment_deadline} for a in assignments]
@@ -66,10 +66,10 @@ async def get_students(class_id:str,user:user_dependency,db: db_dependency):
         class_teacher = db.query(models.Classes).filter(models.Classes.id == class_id.strip()).first()
         if class_teacher.teacher_id != user.id:
             raise HTTPException(status_code=403, detail="Forbidden")
-    
-    class_student = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id.strip()).first()  
-    if class_student is None:
-        raise HTTPException(status_code=403, detail="Forbidden")  
+    else :
+        class_student = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id.strip()).first()  
+        if class_student is None:
+            raise HTTPException(status_code=403, detail="Forbidden")  
     
     students = db.query(models.User).join(models.Class_Students, models.User.id == models.Class_Students.student_id).filter(models.Class_Students.class_id == class_id.strip()).all()
     return [{"id": s.id, "name": s.name,"email":s.email,"phone":s.phone} for s in students]
@@ -84,10 +84,10 @@ async def get_materials(class_id:str,user:user_dependency,db: db_dependency):
         class_teacher = db.query(models.Classes).filter(models.Classes.id == class_id.strip()).first()
         if class_teacher.teacher_id != user.id:
             raise HTTPException(status_code=403, detail="Forbidden")
-    
-    class_student = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id.strip()).first()  
-    if class_student is None:
-        raise HTTPException(status_code=403, detail="Forbidden")  
+    else:
+        class_student = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id.strip()).first()  
+        if class_student is None:
+            raise HTTPException(status_code=403, detail="Forbidden")  
     
     materials = db.query(models.Materials).filter(models.Materials.class_id == class_id.strip()).all()
     return materials
@@ -102,10 +102,10 @@ async def get_announcements(class_id:str,user:user_dependency,db: db_dependency)
         class_teacher = db.query(models.Classes).filter(models.Classes.id == class_id.strip()).first()
         if class_teacher.teacher_id != user.id:
             raise HTTPException(status_code=403, detail="Forbidden")
-    
-    class_student = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id.strip()).first()  
-    if class_student is None:
-        raise HTTPException(status_code=403, detail="Forbidden")  
+    else:
+        class_student = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id.strip()).first()  
+        if class_student is None:
+            raise HTTPException(status_code=403, detail="Forbidden")  
     
     announcements = db.query(models.Announcements,models.User).filter(models.Announcements.class_id == class_id.strip()).join(models.User, models.User.id == models.Announcements.user_id).all()
     return [dict(announcement=a[0],created_by=dict(name=a[1].name,email=a[1].email,pic=a[1].profile_pic),) for a in announcements]
