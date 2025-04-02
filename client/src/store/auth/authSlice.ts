@@ -2,10 +2,15 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/api";
 import { AuthState, User } from "./types";
 
+const userData = localStorage.getItem("user");
+const token = localStorage.getItem("token");
+// console.log(userData);
+
 const initialState: AuthState = {
-  user: null,
+  user: userData && userData !== "undefined" ? JSON.parse(userData) : null,
   error: null,
-  token: null,
+  token: token || null,
+  isAuthenticated: !!token,
 };
 
 export const loginUser = createAsyncThunk(
@@ -23,6 +28,7 @@ export const loginUser = createAsyncThunk(
         },
       });
       console.log(response);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.access_token);
       return response.data;
     } catch (err: any) {
@@ -53,9 +59,43 @@ export const signupUser = createAsyncThunk(
   }
 );
 
+export const googleLogin = createAsyncThunk(
+  "auth/googlelogin",
+  async (googleToken: string, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/auth/google/login", {
+        token: googleToken,
+      });
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.access_token);
+      return response.data;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || "Login Failed");
+    }
+  }
+);
+
+export const googleCallback = createAsyncThunk(
+  "auth/googleCallback",
+  async (code: string, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/auth/google/callback?code=${code}`);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.access_token);
+      console.log(response);
+      return response.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || "Google login failed"
+      );
+    }
+  }
+);
+
 export const logoutUser = createAsyncThunk("auth/logout", async () => {
   await api.post("/auth/logout");
   localStorage.removeItem("token");
+  localStorage.removeItem("user");
 });
 
 const authSlice = createSlice({
@@ -64,30 +104,56 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // Login
       .addCase(loginUser.pending, (state) => {
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        // console.log(action);
-        state.token = action.payload.token;
+        state.user = action.payload.user;
+        state.token = action.payload.access_token;
+        state.isAuthenticated = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.error = action.payload as string;
       })
-      .addCase(signupUser.pending, (state) => {
-        state.error = null;
-      })
+
+      //  Signup
       .addCase(signupUser.fulfilled, (state, action) => {
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.token = action.payload.access_token;
+        state.isAuthenticated = true;
       })
       .addCase(signupUser.rejected, (state, action) => {
         state.error = action.payload as string;
       })
+
+      //  Google Login
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.token = action.payload.access_token;
+        state.isAuthenticated = true;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+
+      // Google Callback
+      .addCase(googleCallback.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.token = action.payload.access_token;
+        state.isAuthenticated = true;
+      })
+      .addCase(googleCallback.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+
+      // Logout
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
       });
   },
 });
-
 const authReducer = authSlice.reducer;
 export default authReducer;

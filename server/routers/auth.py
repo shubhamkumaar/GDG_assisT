@@ -189,22 +189,24 @@ def verify_jwt_token(token: Annotated[str,Depends(oauth2_bearer)],db: db_depende
 @router.get("/google/login")
 async def google_login(request: Request):
     """Redirects the user to Google Authentication"""
-    redirect_uri = "http://localhost:8000/auth/google/callback"
+    # print("in the login function")
+    redirect_uri = "http://127.0.0.1:8000/auth/google/callback"
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 # Changed it to get for testing
 @router.get("/google/callback")
 async def google_callback(request: Request,db: db_dependency):
     """this handles the google Oauth callback and generates the jwt. tbis does by first authorizing the request object and then getting the user info by parsing the id token then query for the user in database if the user is not in database add it then create the access token and return it"""
-    try:
-        token = await oauth.google.authorize_access_token(request)
-    except Exception as e:
-        print("OAuth Error:", str(e))
-        raise HTTPException(
-            status_code = status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail = "Error in login user from google",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
+    print("in the callback function",request.session)
+    token = await oauth.google.authorize_access_token(request)
+    # try:
+    # except Exception as e:
+    #     print("OAuth Error:", str(e))
+    #     raise HTTPException(
+    #         status_code = status.HTTP_405_METHOD_NOT_ALLOWED,
+    #         detail = "Error in login user from google",
+    #         headers={"WWW-Authenticate": "Bearer"}
+    #     )
     
     # user_info = await oauth.google.parse_id_token(request,token)
     user_info = token['userinfo']

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
 import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { signupUser } from "../store/auth/authSlice";
+import { googleLogin, signupUser } from "../store/auth/authSlice";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../store/store";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -32,10 +32,16 @@ export default function SignUpPage() {
     }
   };
 
-  const handleGoogleSignUp = () => {
-    console.log("Signing up with Google");
+  // const handleGoogleSignUp = () => {
+  //   console.log("Signing up with Google");
+  // };
+  const handleGoogleLogin = async (response: any) => {
+    // console.log("Logging in with Google");
+    // dispatch(googleLogin());
+    if (response.credential) {
+      dispatch(googleLogin(response.credential));
+    }
   };
-
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -206,14 +212,11 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <div className="mt-6">
-            <button
-              onClick={handleGoogleSignUp}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <FcGoogle className="h-5 w-5 mr-2" />
-              Sign up with Google
-            </button>
+          <div className="mt-6 flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => console.log("Google Login Failed")}
+            />
           </div>
         </div>
       </div>
