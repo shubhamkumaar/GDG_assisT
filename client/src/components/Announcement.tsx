@@ -8,6 +8,9 @@ export default function Announcement() {
   const [expandedId, setExpandedId] = useState(null);
   const [canAnnouncement, setCanAnnouncement] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   const isTeacher = useSelector(
     (state: RootState) => state.isTeacherPage.isTeacher
@@ -38,25 +41,30 @@ export default function Announcement() {
     },
   ];
 
-  const [file, setFile] = useState<File | null>(null);
-  
-  async function sendAnnouncementend() {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setFile(event.target.files[0]);
+    }
+  };
 
+  async function sendAnnouncementend() {
     console.log(announcement);
     const formData = new FormData();
     formData.append("class_id", "QX3zH9");
-    formData.append("subject", "Class Cancel");
-    formData.append("message", "Koi class mat aana");
+    formData.append("subject", subject);
+    formData.append("message", message);
 
     if (file) {
       formData.append("file", file);
     }
+    console.log(formData);
+    
     try {
       const response = await axios.post(
         "http://localhost:8000/class/announcements",
         formData,
         {
-          headers: {  
+          headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
             "Content-Type": "multipart/form-data",
             Accept: "application/json",
@@ -126,49 +134,59 @@ export default function Announcement() {
           )}
 
           {canAnnouncement && (
-            <div className="flex flex-col justify-start items-start w-full h-[22rem] mb-2">
-              <div className="text-start w-full h-[16rem] pl-4 rounded-lg border-none outline-none ">
-                <input
-                  value={announcement}
-                  onChange={(e) => setAnnouncement(e.target.value)}
-                  type="text"
-                  placeholder="Do announcement"
-                  className="w-full h-full text-start pl-4 rounded-lg border-none outline-none"
+            <div className="flex flex-col justify-start items-start w-full p-4 bg-[#CED3DF]  rounded-lg shadow-lg mb-2">
+            {/* Input Section */}
+            <div className="w-full">
+              {/* Subject Input */}
+              <label className=" text-sm font-medium mb-1 block">Subject</label>
+              <input
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Enter Subject"
+                className="w-full h-10 px-4 mb-3 rounded-lg border border-[#545e79] outline-none focus:ring-2 focus:ring-blue-500"
+              />
+          
+              {/* Message Textarea */}
+              <label className="text-sm font-medium mb-1 block">Description</label>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Write your message..."
+                className="w-full h-[8rem] px-4 py-2 mb-3  rounded-lg border border-[#545e79] outline-none resize-none focus:ring-2 focus:ring-blue-500"
+              />
+          
+              {/* File Upload */}
+              <label className="text-sm font-medium mb-1 block">Upload File</label>
+              <input
+                type="file"
+                onChange={handleFileChange}
+                className="w-full px-3 py-2 mb-3 rounded-lg border border-[#545e79] outline-none cursor-pointer file:mr-3 file:py-1 file:px-4 file:border-none file:text-white file:bg-blue-600 file:rounded-lg file:cursor-pointer hover:file:bg-blue-500 focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          
+            {/* Action Buttons */}
+            <div className="flex flex-row justify-between items-center w-full border-t-2 border-[#545e79] pt-3">
+              <div className="flex flex-row justify-start items-center">
+                <button
+                  onClick={sendAnnouncementend}
+                  className="px-6 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-500 transition duration-300"
+                >
+                  Send
+                </button>
+              </div>
+          
+              <div className="mr-4">
+                <img
+                  onClick={sendAnnouncementend}
+                  className="w-8 h-8 cursor-pointer transition transform hover:scale-110"
+                  src="../../OpenSymbol.svg"
+                  alt="send"
                 />
               </div>
-
-              <div className="flex flex-row justify-between items-center w-full h-[8rem] border-t-2 border-[#545e79]">
-                <div className="flex flex-row justify-start items-center">
-                  <img
-                    onClick={sendAnnouncementend}
-                    className="w-8 h-8 ml-4 cursor-pointer"
-                    src="../../OpenSymbol.svg"
-                    alt="send"
-                  />
-                  <img
-                    onClick={sendAnnouncementend}
-                    className="w-8 h-8 ml-2 cursor-pointer"
-                    src="../../OpenSymbol.svg"
-                    alt="send"
-                  />
-                  <img
-                    onClick={sendAnnouncementend}
-                    className="w-8 h-8 ml-2 cursor-pointer"
-                    src="../../OpenSymbol.svg"
-                    alt="send"
-                  />
-                </div>
-
-                <div className="mr-[2rem]">
-                  <img
-                    onClick={sendAnnouncementend}
-                    className="w-8 h-8 mt-2 cursor-pointer "
-                    src="../../OpenSymbol.svg"
-                    alt="send"
-                  />
-                </div>
-              </div>
             </div>
+          </div>
+          
           )}
         </div>
 

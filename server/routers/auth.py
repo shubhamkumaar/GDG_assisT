@@ -58,10 +58,20 @@ class User(BaseModel):
     is_teacher: bool = False
     password: str
 
+class User_Object(BaseModel):
+    """Creates the base User Object Model"""
+    name: str
+    email: str
+    is_teacher: bool
+    profile_pic: str
+
 class Token(BaseModel):
     """Creates the base Token Model"""
     access_token: str
     token_type: str
+    user: User_Object
+    message: str
+    
 
 
 # DB Models
@@ -135,7 +145,15 @@ async def login_for_access_token(form_data:Annotated[OAuth2PasswordRequestForm,D
     access_token = create_access_token(
         user.email,user.id, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer","user":{"name":user.name,"email":user.email,"is_teacher":user.is_teacher,"profile_pic":user.profile_pic}, "message": "Login Successful"}
+    user_object = {
+        "name": user.name,
+        "email": user.email,
+        "is_teacher": user.is_teacher,
+        "profile_pic": user.profile_pic
+    }
+    return {"access_token": access_token, "token_type": "bearer",
+            "user": user_object, 
+            "message": "Login Successful"}
 
 def authenticate_user(email: str, password: str,db: db_dependency):
     """This function is used to check if the user exists in the database or not.The user is queried from the database if no user found it return false if a user was the found the sent password is verified with saved password in database using bcrypt_context and return the user finally"""
