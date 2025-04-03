@@ -14,6 +14,7 @@ export default function SignUpPage() {
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [is_teacher, setRole] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
@@ -24,7 +25,7 @@ export default function SignUpPage() {
       return;
     }
     try {
-      dispatch(signupUser({ name, email, password }));
+      dispatch(signupUser({ name, email, password, is_teacher}));
       // console.log(e);
       navigate("/");
     } catch (err) {
@@ -51,21 +52,12 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex-col gap-4">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
             Create your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              Sign in
-            </Link>
-          </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -169,7 +161,42 @@ export default function SignUpPage() {
               </button>
             </div>
           </div>
-
+          <div className="flex items-center">
+            <p className="mr-2 block">
+              I am a 
+            </p>
+            <input
+              id="student"
+              name="role"
+              type="radio"
+              value="student"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              defaultChecked
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setRole(false);
+                }
+              }}
+            />
+            <label htmlFor="student" className="ml-2 block text-sm text-gray-900">
+              Student
+            </label>
+            <input
+              id="teacher"
+              name="role"
+              type="radio"
+              value="teacher"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ml-4"
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setRole(true);
+                }
+              }}
+            />
+            <label htmlFor="teacher" className="ml-2 block text-sm text-gray-900">
+              Teacher
+            </label>
+          </div>
           <div className="flex items-center">
             <input
               id="terms"
@@ -219,6 +246,16 @@ export default function SignUpPage() {
             />
           </div>
         </div>
+      </div>
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md flex justify-center">
+        <div className="text-sm mb-0">
+          Already have an account?
+          <Link
+            to="/login"
+            className="font-medium text-blue-500 hover:text-blue-500 ml-1">
+          Login
+          </Link>
+          </div>
       </div>
     </div>
   );

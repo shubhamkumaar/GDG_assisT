@@ -2,7 +2,7 @@ import { RootState } from '../store/store';
 import { useDispatch, useSelector } from 'react-redux'
 import { getPageName } from '../features/workingPage/workingPageSlice'
 import { isJoiningClass } from '../features/joinPage/joinPageSlice'
-
+import { logoutUser } from '../store/auth/authSlice'
 
 export default function SideBar() {
 
@@ -18,7 +18,7 @@ export default function SideBar() {
     {!isSidebar ? 
         <div className="flex flex-col h-[100vh]">
 
-            <div className='bg-[#AAB2C6] w-[22rem] h-[5rem]'>
+            <div className='bg-[#AAB2C6] w-[22rem] h-[10vh]'>
                 <div  className='flex flex-row items-center justify-between h-[5rem]'>
                     <div className='flex flex-row items-center justify-start h-[5rem] ml-[1.5rem]'>
                         <div className='w-8 h-8 rounded-full bg-amber-50' ></div>
@@ -29,9 +29,9 @@ export default function SideBar() {
                 </div>
             </div>
 
-            <div className='bg-[#CED3DF] w-[22rem] h-[100vh]'>
+            <div className='bg-[#CED3DF] w-[22rem] h-[90vh]'>
 
-                <div className='flex flex-col items-center justify-start h-[42rem] '>
+                <div className='flex flex-col items-center justify-start h-[100%] '>
 
                     <div className='flex flex-row items-center justify-start h-[4rem] mt-10 ml-[4rem] w-full hover:scale-[1.02] transform transition-all duration-200'
                         onClick={() => dispatch(getPageName("Home"))}>
@@ -80,6 +80,14 @@ export default function SideBar() {
                             src="../../JoinClass.svg" alt="logo" />
                         <div className='text-2xl font-semibold text-[#F2F4F8] '>Join Class</div>
                     </div>}
+                    {/* Logout button at the flex-end */}
+                    <div className='flex items-center justify-center mt-[14rem] w-[18rem] h-[5rem] cursor-pointer hover:scale-[1.02] transform transition-all duration-200 active:scale-95'
+                        onClick={() => dispatch(logoutUser())}>
+                        <img className='h-6 w-6 cursor-pointer mr-4'
+                            src="../../LogoutSymbol.svg" alt="logo" />
+                        <div className='text-3xl font-semibold text-[#545E79]'>Logout</div>
+                    </div> 
+
                 </div>
             </div>
 
@@ -87,8 +95,8 @@ export default function SideBar() {
         :
         <div className="flex flex-col h-[100vh]">
 
-            <div className='bg-[#AAB2C6] w-[6rem] h-[5rem]'>
-                <div  className='flex flex-row items-center justify-between h-[5rem]'>
+            <div className='bg-[#AAB2C6] w-[6rem] h-[10vh]'>
+                <div  className='flex flex-row items-center justify-between h-[10vh]'>
                     <div className='flex flex-row items-center justify-start h-[5rem] ml-[1.5rem]'>
                         <div className='w-8 h-8 rounded-full bg-amber-50' ></div>
                     </div>

@@ -230,14 +230,15 @@ async def google_callback(request: Request,db: db_dependency):
     return {"access_token": access_token, "token_type": "bearer","user":{"new_user":new_user,"name":name,"email":email,"picture":user_info['picture']}, "message": "Login Successful with Google"}
 
 @router.post("/protected")
-async def protected_route(user: dict = Depends(verify_jwt_token)):
+async def protected_route(request: Request, user: dict = Depends(verify_jwt_token)):
     return {"Message": "you have access","user": user}
 
 @router.post("/logout")
-async def logout(request: Request,token: Optional[str] = None):
+async def logout(request: Request, token: Optional[str] = None):
+    """This function is used to logout the user by clearing the session and blacklisting the token"""
     request.session.clear()
-
     if token:
         token_blacklist.add(token)
-
-    return RedirectResponse(url="/")
+    response = RedirectResponse(url="/")
+    response.status_code =  302
+    return response

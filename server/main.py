@@ -39,18 +39,19 @@ app.include_router(generate_quiz.router)
 @app.get("/")
 def read_root():
    # Remove all the spaces file path
-   file_path = "server/public/pres.ppt"
-   os.system(f"libreoffice --headless --convert-to pptx --outdir server/public/ {file_path}")
-   # os.remove(file_path)
-   file_path = file_path.replace(".ppt", ".pptx")
-   output_path = Path(f"server/public/{file_path.split('/')[-1].replace('.pptx', '.md')}")
-   print(file_path)  
-   convert(
-      ConversionConfig(
-          pptx_path=file_path,
-          output_path=output_path,
-          image_dir="server/public/images",
-          disable_image=True
-      )
-   )
-   return output_path
+#    file_path = "server/public/pres.ppt"
+#    os.system(f"libreoffice --headless --convert-to pptx --outdir server/public/ {file_path}")
+#    # os.remove(file_path)
+#    file_path = file_path.replace(".ppt", ".pptx")
+#    output_path = Path(f"server/public/{file_path.split('/')[-1].replace('.pptx', '.md')}")
+#    print(file_path)  
+#    convert(
+#       ConversionConfig(
+#           pptx_path=file_path,
+#           output_path=output_path,
+#           image_dir="server/public/images",
+#           disable_image=True
+#       )
+#    )
+#    return output_path
+    return {"message": "Hello World"}

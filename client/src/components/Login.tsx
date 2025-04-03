@@ -20,6 +20,7 @@ import {
 } from "react-router-dom";
 // import { RootState } from "@reduxjs/toolkit/query";
 import { GoogleLogin } from "@react-oauth/google";
+import { Link } from "react-router-dom";
 
 export default function LoginPage() {
   const [username, setEmail] = useState("");
@@ -56,7 +57,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex-col gap-4">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
@@ -131,7 +132,6 @@ export default function LoginPage() {
               </a>
             </div>
           </div>
-
           <div>
             <button
               type="submit"
@@ -141,7 +141,6 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -162,6 +161,16 @@ export default function LoginPage() {
             />
           </div>
         </div>
+      </div>
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md flex justify-center">
+        <div className="text-sm mb-0">
+          Don't have an account?
+          <Link
+            to="/signup"
+            className="font-medium text-blue-500 hover:text-blue-500 ml-1">
+          Sign up
+          </Link>
+          </div>
       </div>
     </div>
   );
