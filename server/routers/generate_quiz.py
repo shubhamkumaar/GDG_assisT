@@ -313,7 +313,7 @@ The response should be in JSON format, like
     ):
         print(chunk.text, end="")
         res += chunk.text
-    with open("server/public/quiz.json", "w") as f:
+    with open("server/tmp/quiz.json", "w") as f:
         f.write(res)          
     return res
 
@@ -368,7 +368,7 @@ async def generate_quiz(user:user_dependency, db: db_dependency, material_ids_st
       # Extract the filename from the URL path
       parsed_url = urlparse(url)
       filename = parsed_url.path.split('/')[-1]
-      file_path = os.path.join("server/public/", filename)
+      file_path = os.path.join("server/tmp/", filename)
       
       format = filename.split(".")[-1]
       # Check if the file is a PDF or PPT
@@ -382,32 +382,35 @@ async def generate_quiz(user:user_dependency, db: db_dependency, material_ids_st
       
       # Convert .ppt to .pptx newer version of presentation 
       if format == "ppt":
-        os.system(f"libreoffice --headless --convert-to pptx --outdir server/public/ {file_path}")
+        os.system(f"libreoffice --headless --convert-to pptx --outdir server/tmp/ {file_path}")
         os.remove(file_path)
         file_path = file_path.replace(".ppt", ".pptx")
         print(file_path)  
       
       # Convert pptx to md
-      output_path = Path(f"server/public/{file_path.split('/')[-1].replace('.pptx', '.md')}")
+      output_path = Path(f"server/tmp/{file_path.split('/')[-1].replace('.pptx', '.md')}")
       if format == "pptx":
         convert(
            ConversionConfig(
                pptx_path=file_path,
                output_path=output_path,
-               image_dir="server/public/images",
+               image_dir="server/tmp/images",
                disable_image=True
            )
         )
+        os.remove(file_path)
         file_path = output_path
         
       # Conver docx to md  
       if format == "doc" or format == "docx":
-        os.system(f"pandoc -f docx -t gfm {file_path} -o {file_path}/question.md")
+        os.system(f"pandoc -f docx -t gfm {file_path} -o {file_path}/material.md")
         if format == "docx":
+          os.remove(file_path)
           file_path = file_path.replace(".docx", ".md")
         if format == "doc":
+          os.remove(file_path)
           file_path = file_path.replace(".doc", ".md")
-        file_path = f"{file_path}/question.md"
+        file_path = f"{file_path}/material.md"
       files.append(file_path)   
       
   # Check if the files are empty
@@ -421,7 +424,7 @@ async def generate_quiz(user:user_dependency, db: db_dependency, material_ids_st
   print("Amount:", amount)
   res = generate(int(amount),files)
   
-  # Remove the files after processing from server/public
+  # Remove the files after processing from server/tmp
   for file in files:
     os.remove(file)
   return {"message": "Quiz generated successfully","response":res}  

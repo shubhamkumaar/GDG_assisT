@@ -47,8 +47,7 @@ credentials.json
 
 # client 
 node_modules/
+package-lock.json
 
 # generated files
-public/
-
 .vite/

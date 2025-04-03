@@ -16,7 +16,7 @@ class User(Base):
     profile_pic = Column(String)
 
 def generate_uuid_code():
-    return base64.urlsafe_b64encode(uuid.uuid4().bytes).decode()[:6]
+    return ''.join(filter(str.isalnum, str(uuid.uuid4())))[:6]
 
 class Classes(Base):
     __tablename__ = 'classes'

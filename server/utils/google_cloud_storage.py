@@ -19,7 +19,7 @@ async def upload_file(file):
     if not file:
         return {"message": "file not found", "status": 404}
     # Save the file to the server
-    source_file_path = f"./server/public/{file.filename}"
+    source_file_path = f"./server/tmp/{file.filename}"
     with open(source_file_path, "wb") as buffer:
         buffer.write(await file.read())
 
@@ -45,7 +45,7 @@ async def upload_file(file):
     finally:
         # Delete the file from the server
         os.remove(source_file_path)
-# print(upload_file("./server/public/SOFTWARE22BCE10461.pdf"))
+# print(upload_file("./server/tmp/SOFTWARE22BCE10461.pdf"))
 
 # delete file from the bucket
 def delete_file(file_url):
