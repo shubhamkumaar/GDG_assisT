@@ -63,7 +63,7 @@ class User_Object(BaseModel):
     name: str
     email: str
     is_teacher: bool
-    profile_pic: str
+    profile_pic: Optional[str] = None
 
 class Token(BaseModel):
     """Creates the base Token Model"""
@@ -133,7 +133,7 @@ async def create_user(user: User,db: db_dependency):
 async def login_for_access_token(form_data:Annotated[OAuth2PasswordRequestForm,Depends()],db: db_dependency):
     """The user is authenticated to check if he exists in the database or not if thier is no user found an exception is raised an access token is created for user session and the corresponding object is returned"""
     user = authenticate_user(form_data.username, form_data.password,db)
-    print(user.name)
+    
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
