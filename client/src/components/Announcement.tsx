@@ -3,8 +3,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
 import { getClassroomType } from "../features//classroomPage/classroomPageSlice";
 import axios from "axios";
+import { getToken } from "../utils/jwt";
 
 export default function Announcement() {
+
+  const token = getToken();
   const [expandedId, setExpandedId] = useState(null);
   const [canAnnouncement, setCanAnnouncement] = useState(false);
   const [announcement, setAnnouncement] = useState("");
@@ -50,7 +53,7 @@ export default function Announcement() {
   async function sendAnnouncementend() {
     console.log(announcement);
     const formData = new FormData();
-    formData.append("class_id", "QX3zH9");
+    formData.append("class_id", "dd7fa7");
     formData.append("subject", subject);
     formData.append("message", message);
 
@@ -65,7 +68,7 @@ export default function Announcement() {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${getToken.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
             Accept: "application/json",
           },

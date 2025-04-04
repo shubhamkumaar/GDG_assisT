@@ -100,8 +100,8 @@ export default function AssignmentPage() {
   return (
     <div className=" flex flex-col  bg-[#F2F4F8] w-full h-screen">
       {/* upper nav */}
-      <div className="bg-[#ced3df] w-full h-[5rem]">
-        <div className="flex flex-row items-center justify-between h-[5rem]">
+      <div className="bg-[#ced3df] w-full h-[10vh]">
+        <div className="flex flex-row items-center justify-between h-[10vh]">
           <Link to="/classroom">
             <img
               className="h-8 w-8 ml-[1.5rem] cursor-pointer"

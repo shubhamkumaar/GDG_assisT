@@ -3,7 +3,7 @@ from typing import Annotated
 from .routers import check_answer, feedback, auth, assignment, home, classes, profile, generate_quiz
 from starlette.middleware.sessions import SessionMiddleware
 import json
-from pptx2md import convert, ConversionConfig
+# from pptx2md import convert, ConversionConfig
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 import os

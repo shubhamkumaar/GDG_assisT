@@ -167,6 +167,8 @@ async def post_announcements(
     
     if user.is_teacher:
         class_teacher = db.query(models.Classes).filter(models.Classes.id == class_id.strip()).first()
+        if class_teacher is None:
+            raise HTTPException(status_code=404, detail="Class not found")
         if class_teacher.teacher_id != user.id:
             raise HTTPException(status_code=403, detail="Forbidden")
     

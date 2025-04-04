@@ -31,7 +31,7 @@ export default function SetAssignment() {
   async function createAssignment() {
     try {
       const formData = new FormData();
-      formData.append("class_id", "QX3zH9");
+      formData.append("class_id", "dd7fa7");
       formData.append("name", title);
 
       formData.append("description", description);

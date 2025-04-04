@@ -11,61 +11,58 @@ import { getToken } from "../utils/jwt";
 import { TbDentalBroken } from "react-icons/tb";
 
 export default function ClassRoomPage() {
-  const token = getToken();
-  const classroomPage = useSelector(
-    (state: RootState) => state.classroomPage.classroomType
-  );
-  const dispatch = useDispatch();
-  const [classes, setClasses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [AnnouncementArr, setAnnouncement] = useState([]);
-  const [studentArr, setStudent] = useState([]);
-  // const [materialArr, setMaterial] = useState([])
-  // const [AssignmentArr,setAssignment] = useState([])
-  useEffect(() => {
-    const fetchClass = async () => {
-      try {
-        const response = await axios.get("http://localhost:8000/class", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          params: {
-            class_id: "QX3zH9",
-          },
-        });
-        console.log(response.data);
-        setClasses(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching classes:", error);
-      }
-    };
-    fetchClass();
-  }, [token]);
 
-  useEffect(() => {
-    const fetchAnnouncment = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8000/class/announcements",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            params: {
-              class_id: "QX3zH9",
-            },
-          }
-        );
-        console.log("Annou", response.data);
-        setAnnouncement(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching classes:", error);
-      }
-    };
-    fetchAnnouncment();
-  }, [token]);
+    const token = getToken();
+    const classroomPage = useSelector((state: RootState) => state.classroomPage.classroomType)
+    const dispatch = useDispatch();
+    const [classes, setClasses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [AnnouncementArr, setAnnouncement] = useState([]);
+    const [studentArr, setStudent] = useState([])
+    // const [materialArr, setMaterial] = useState([])
+    // const [AssignmentArr,setAssignment] = useState([])
+    
+    useEffect(() => {
+        const fetchClass = async () => {
+            try {
+                const response = await axios.get("http://localhost:8000/class", {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    params: {
+                        class_id:"dd7fa7"
+                    }
+                });
+                console.log(response.data);
+                setClasses(response.data);
+                setLoading(false);
+            } catch (error) {
+                console.error("Error fetching classes:", error);
+            }                    
+        };
+        fetchClass();
+    }, []);
+    
+    useEffect(()=>{
+        const fetchAnnouncment = async () => {
+            try {
+                const response = await axios.get("http://localhost:8000/class/announcements", {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    params: {
+                        class_id:"dd7fa7"
+                    }
+                });
+                console.log("Annou",response.data);
+                setAnnouncement(response.data);
+                setLoading(false);
+            } catch (error) {
+                console.error("Error fetching classes:", error);
+            }                    
+        };
+        fetchAnnouncment();
+    },[])
 
   useEffect(() => {
     const fetchMaterial = async () => {
@@ -77,7 +74,7 @@ export default function ClassRoomPage() {
               Authorization: `Bearer ${token}`,
             },
             params: {
-              class_id: "QX3zH9",
+              class_id: "dd7fa7",
             },
           }
         );
@@ -101,7 +98,7 @@ export default function ClassRoomPage() {
               Authorization: `Bearer ${token}`,
             },
             params: {
-              class_id: "QX3zH9",
+              class_id: "dd7fa7",
             },
           }
         );
@@ -125,7 +122,7 @@ export default function ClassRoomPage() {
               Authorization: `Bearer ${token}`,
             },
             params: {
-              class_id: "QX3zH9",
+              class_id: "dd7fa7",
             },
           }
         );

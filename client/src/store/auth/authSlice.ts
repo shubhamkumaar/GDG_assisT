@@ -33,7 +33,7 @@ export const loginUser = createAsyncThunk(
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-      console.log(response.data);
+      console.log(response.data.user.is_teacher);
       setUserWithExpiry("user", response.data.user, 28 * 10 * 1000);
       localStorage.setItem("token", response.data.access_token);
       return response.data;
@@ -154,6 +154,7 @@ const authSlice = createSlice({
         state.token = action.payload.access_token;
         state.isAuthenticated = true;
       })
+
       .addCase(googleCallback.rejected, (state, action) => {
         state.error = action.payload as string;
       })
@@ -166,5 +167,6 @@ const authSlice = createSlice({
       });
   },
 });
+
 const authReducer = authSlice.reducer;
 export default authReducer;
