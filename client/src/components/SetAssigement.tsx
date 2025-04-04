@@ -5,12 +5,15 @@ import { RootState } from "../store/store";
 import { isAddAssigement } from "../features/addAssigement/addAssigementSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
+import { useLocation } from "react-router-dom";
 
 export default function SetAssignment() {
+
   const token = getToken();
-  const isAddAssigementValue = useSelector(
-    (state: RootState) => state.addAssigement.isAddAssigementValue
-  );
+  const { state } = useLocation();
+  const class_id = state?.id;
+
+  const isAddAssigementValue = useSelector((state: RootState) => state.addAssigement.isAddAssigementValue);
   const dispatch = useDispatch();
 
   const [title, setTitle] = useState("");
@@ -22,16 +25,15 @@ export default function SetAssignment() {
     const selectedFile = e.target.files[0];
     if (selectedFile && selectedFile.type === "application/pdf") {
       setFile(selectedFile);
-      console.log("File selected:", selectedFile.name);
-      console.log("File type:", file);
     } else {
       //toast
     }
   };
+  
   async function createAssignment() {
     try {
       const formData = new FormData();
-      formData.append("class_id", "dd7fa7");
+      formData.append("class_id", class_id );
       formData.append("name", title);
 
       formData.append("description", description);
@@ -54,24 +56,16 @@ export default function SetAssignment() {
         }
       );
       console.log(response.data);
+      setTitle("");
+      setDueDate(null);
+      setDescription("");
+      setFile(null);
+      dispatch(isAddAssigement(false));
     } catch (error) {
       console.error("Error creating assignment:", error);
     }
     console.log("Assignment created:", title, dueDate, description, file);
   }
-  //   function createAssignment () {
-  //     if (title && description) {
-  //       console.log('Assignment created:', title, dueDate, description, file);
-  //         setFile(null);
-  //         setTitle("");
-  //         setDueDate(null);
-  //         setDescription("");
-  //         dispatch(isAddAssigement(!isAddAssigementValue))
-  //       //toast
-  //     } else {
-  //       //toast
-  //     }
-  //   };
 
   return (
     <div className="absolute top-[16rem] left-[54rem] w-[32rem] h-[32rem] flex items-center justify-center z-[69]">

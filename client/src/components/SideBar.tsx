@@ -34,7 +34,7 @@ export default function SideBar() {
 
             <div className='bg-[#CED3DF] w-[22rem] h-[90vh]'>
 
-                <div className='flex flex-col items-center justify-start h-[100%] '>
+                <div className='relative flex flex-col items-center justify-start h-[100%] '>
 
                     <Link  to="" className='flex flex-row items-center justify-start h-[4rem] mt-10 ml-[4rem] w-full hover:scale-[1.02] transform transition-all duration-200'
                     onClick={() => dispatch(getPageName("Home"))}>
@@ -83,12 +83,13 @@ export default function SideBar() {
                             src="../../JoinClass.svg" alt="logo" />
                         <div className='text-2xl font-semibold text-[#F2F4F8] '>Join Class</div>
                     </div>}
+
                     {/* Logout button at the flex-end */}
-                    <div className='flex items-center justify-center mt-[14rem] w-[18rem] h-[5rem] cursor-pointer hover:scale-[1.02] transform transition-all duration-200 active:scale-95'
+                    <div className='flex items-center justify-center mt-[4rem] bg-[#545e79] w-[18rem] h-[5rem] rounded-4xl cursor-pointer hover:scale-[1.02] transform transition-all duration-200 active:scale-95 absolute bottom-8'
                         onClick={() => dispatch(logoutUser())}>
                         <img className='h-6 w-6 cursor-pointer mr-4'
                             src="../../LogoutSymbol.svg" alt="logo" />
-                        <div className='text-3xl font-semibold text-[#545E79]'>Logout</div>
+                        <div className='text-3xl font-semibold text-[#F2F4F8]'>Logout</div>
                     </div> 
 
                 </div>

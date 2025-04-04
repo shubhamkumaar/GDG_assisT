@@ -9,7 +9,6 @@ export default function ClassBox() {
   // const [classroomBox, setClassroomBox] = useState([{}]);
   const [classrooms, setClassrooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  console.log("ClassBox",classrooms);
   const token = getToken();
 
   useEffect(() => {
@@ -31,6 +30,8 @@ export default function ClassBox() {
   }, [token]);
 
 
+
+
   return (
     <>
     
@@ -39,6 +40,8 @@ export default function ClassBox() {
           key={classroom.class_id}
           className="bg-[#8591ad] w-[20rem] h-[21rem] rounded-2xl mt-12 ml-16"
           to={`/classroom`}
+          state={{ id: classroom.class_id,class_name : classroom.class_name, teacher_name: classroom.teacher_name, 
+            teacher_email: classroom.teacher_email}}
         >
           <div className='flex flex-row items-center justify-between'>
             <div className="flex flex-col justify-between p-4">

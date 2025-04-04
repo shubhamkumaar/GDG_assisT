@@ -43,26 +43,26 @@ export default function ClassRoomPage() {
         fetchClass();
     }, []);
     
-    useEffect(()=>{
-        const fetchAnnouncment = async () => {
-            try {
-                const response = await axios.get("http://localhost:8000/class/announcements", {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                    params: {
-                        class_id:"dd7fa7"
-                    }
-                });
-                // console.log("Annou",response.data);
-                setAnnouncement(response.data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching classes:", error);
-            }                    
-        };
-        fetchAnnouncment();
-    },[])
+    // useEffect(()=>{
+    //     const fetchAnnouncment = async () => {
+    //         try {
+    //             const response = await axios.get("http://localhost:8000/class/announcements", {
+    //                 headers: {
+    //                     Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //                 },
+    //                 params: {
+    //                     class_id:"dd7fa7"
+    //                 }
+    //             });
+    //             // console.log("Annou",response.data);
+    //             setAnnouncement(response.data);
+    //             setLoading(false);
+    //         } catch (error) {
+    //             console.error("Error fetching classes:", error);
+    //         }                    
+    //     };
+    //     fetchAnnouncment();
+    // },[])
 
   useEffect(() => {
     const fetchMaterial = async () => {
@@ -110,30 +110,6 @@ export default function ClassRoomPage() {
       }
     };
     fetchAnnouncment();
-  }, [token]);
-
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8000/class/students",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            params: {
-              class_id: "dd7fa7",
-            },
-          }
-        );
-        console.log("Students", response.data);
-        setStudent(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching classes:", error);
-      }
-    };
-    fetchStudents();
   }, [token]);
 
 

@@ -14,9 +14,7 @@ export default function WorkingPage() {
     (state: RootState) => state.workingPage.pageName
   );
   const isJoining = useSelector((state: RootState) => state.joinPage.isJoining);
-  const isTeacher = useSelector(
-    (state: RootState) => state.isTeacherPage.isTeacher
-  );
+  const isTeacher = useSelector((state: RootState) => state.auth.user?.is_teacher)
 
   return (
     <>

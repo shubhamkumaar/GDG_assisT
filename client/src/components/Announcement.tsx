@@ -4,9 +4,18 @@ import { RootState } from "../store/store";
 import { getClassroomType } from "../features//classroomPage/classroomPageSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
+import { useLocation } from 'react-router-dom';
+
 
 export default function Announcement() {
 
+  const { state } = useLocation();
+  const class_id = state?.id;
+  const class_name = state?.class_name;
+  const teacher_name = state?.teacher_name;
+  const teacher_email = state?.teacher_email;
+
+ 
   const token = getToken();
 
   const [expandedId, setExpandedId] = useState(null);
@@ -17,7 +26,7 @@ export default function Announcement() {
   const [announcements, setAnnouncements] = useState([]);
   const [useIt, setUseIt] = useState(false);
 
-  const isTeacher = useSelector((state: RootState) => state.isTeacherPage.isTeacher);
+  const isTeacher = useSelector((state: RootState) => state.auth.user?.is_teacher)
 
   const dispatch = useDispatch();
 
@@ -54,7 +63,7 @@ export default function Announcement() {
   async function sendAnnouncementend() {
 
     const formData = new FormData();
-    formData.append("class_id", "dd7fa7");
+    formData.append("class_id", class_id);
     formData.append("subject", subject);
     formData.append("message", message);
 
@@ -93,10 +102,9 @@ export default function Announcement() {
                     Authorization: `Bearer ${token}`,
                 },
                 params: {
-                    class_id:"dd7fa7"
+                    class_id: class_id
                 }
             });
-            console.log("Annou",response.data[0]);
             setAnnouncements(response.data);
 
         } catch (error) {
@@ -104,7 +112,7 @@ export default function Announcement() {
         }
     };
     fetchAnnouncment();
-  },[useIt,token])
+  },[useIt])
 
   function doAnnouncement() {
     setCanAnnouncement(true);
@@ -122,14 +130,14 @@ export default function Announcement() {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     
-    // Format time in 12-hour format with AM/PM
+    
     let hours = date.getHours();
     const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+    hours = hours % 12 || 12; 
     const minutes = date.getMinutes().toString().padStart(2, '0');
     
     return `${day}/${month}/${year}, ${hours}:${minutes} ${ampm}`; 
-    // Output: "05/04/2025, 11:03 PM"
+    
   };
 
   return (
@@ -139,15 +147,17 @@ export default function Announcement() {
       <div className='flex flex-col justify-start items-center h-[24rem] w-[16rem] mt-[2rem] mx-[6rem]'>
 
         {isTeacher ? <div className='text-4xl font-bold h-[10rem] bg-white w-[16rem] flex flex-col justify-center items-center'>
-          <p className='mt-4 text-center w-full text-2xl font-semibold'>XPL35Z</p>
+          <p className='mt-4 text-center w-full text-2xl font-semibold'> {class_id} </p>
           <div className='w-full flex justify-center items-center h-[4rem] mt-4 bg-amber-50 cursor-pointer'>
             <img className='w-8 h-8'
             src="../../OpenSymbol.svg" alt="share" />
           </div>
           </div > 
-          : <div className='text-4xl font-bold h-[10rem] bg-white w-[16rem] flex justify-center items-center'>
-              <p className='text-center w-full text-2xl font-semibold'>Join Class</p>
-              <img src="../../OpenSymbol.svg" alt="joinclass" />
+          : <div className='flex-col gap-2 text-4xl font-bold h-[10rem] bg-white w-[16rem] flex justify-center items-center'>
+              <p className='text-center w-full text-2xl font-semibold'>{class_name}</p>
+              <p className='text-center w-full text-xl font-semibold'>Teacher : {teacher_name}</p>
+              <p className='text-center w-full text-lg font-semibold'>contact - {teacher_email}</p>
+              
           </div > }
 
         {isTeacher && <div onClick={() => dispatch(getClassroomType("Assignment"))}
