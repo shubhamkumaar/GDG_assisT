@@ -54,7 +54,7 @@ export default function ClassRoomPage() {
                         class_id:"dd7fa7"
                     }
                 });
-                console.log("Annou",response.data);
+                // console.log("Annou",response.data);
                 setAnnouncement(response.data);
                 setLoading(false);
             } catch (error) {
@@ -135,6 +135,8 @@ export default function ClassRoomPage() {
     };
     fetchStudents();
   }, [token]);
+
+
   return (
     <div className=" flex flex-col  bg-[#F2F4F8] w-full h-screen">
       <div className="bg-[#ced3df] w-full h-[10vh]">
