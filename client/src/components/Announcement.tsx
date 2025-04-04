@@ -51,7 +51,6 @@ export default function Announcement() {
   };
 
   async function sendAnnouncementend() {
-    console.log(announcement);
     const formData = new FormData();
     formData.append("class_id", "dd7fa7");
     formData.append("subject", subject);

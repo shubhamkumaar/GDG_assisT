@@ -38,6 +38,38 @@ async def get_class_home(class_id:str,user:user_dependency,db: db_dependency):
         "teacher_phone": teacher.phone,
         }
 
+@router.post("/update",status_code=status.HTTP_200_OK)
+async def update_class(
+    user:user_dependency,
+    db: db_dependency,
+    class_id: str = Form(...),
+    class_name: str = Form(...),
+    days_of_week: str = Form(...),
+    start_time: str = Form(...),
+    last_instruction_day: str = Form(...),
+):
+    if user is None:
+        raise HTTPException(status_code=404, detail="Authentication required")
+    
+    if not user.is_teacher:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    if user.is_teacher:
+        class_teacher = db.query(models.Classes).filter(models.Classes.id == class_id.strip()).first()
+        if class_teacher.teacher_id != user.id:
+            raise HTTPException(status_code=403, detail="Forbidden")
+    
+    days_of_week = days_of_week.split(",")
+    days_of_week = [day.strip()[:3] for day in days_of_week]
+    db.query(models.Classes).filter(models.Classes.id == class_id.strip()).update({
+        models.Classes.class_name: class_name,
+        models.Classes.days_of_week: days_of_week,
+        models.Classes.start_time: start_time,
+        models.Classes.last_instruction_day: last_instruction_day
+    })
+    db.commit()
+    return {"message":"Class updated successfully"}
+
 # Get assignments of a class
 @router.get("/assignments",status_code=status.HTTP_200_OK)
 async def get_assignments(class_id:str,user:user_dependency,db: db_dependency):
@@ -171,10 +203,10 @@ async def post_announcements(
             raise HTTPException(status_code=404, detail="Class not found")
         if class_teacher.teacher_id != user.id:
             raise HTTPException(status_code=403, detail="Forbidden")
-    
-    class_student = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id.strip()).first()  
-    if class_student is None:
-        raise HTTPException(status_code=403, detail="Forbidden")  
+    else:
+        class_student = db.query(models.Class_Students).filter(models.Class_Students.student_id == user.id).filter(models.Class_Students.class_id == class_id.strip()).first()  
+        if class_student is None:
+            raise HTTPException(status_code=403, detail="Forbidden")  
     new_announcement = models.Announcements(
         class_id=class_id.strip(),
         subject=subject,

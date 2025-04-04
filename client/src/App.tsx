@@ -17,7 +17,6 @@ import SignUpPage from "./components/SignUp";
 import WorkingPage from "./components/WorkingPage";
 import Layout from "./Layout";
 import { RootState } from "./store/store";
-
 function App() {
   const ProtectedRoute = () => {
     const token = useSelector((state: RootState) => state.auth.token);

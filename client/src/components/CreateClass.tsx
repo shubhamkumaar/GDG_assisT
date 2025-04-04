@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { isJoiningClass } from "../features/joinPage/joinPageSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
+import toast from "react-hot-toast";
 export default function CreateClass() {
   const token = getToken();
   const [className, setClassName] = useState("");
@@ -19,14 +20,10 @@ export default function CreateClass() {
   async function createClasses() {
     if (className) {
       dispatch(isJoiningClass(false));
-      console.log("Creating class with name");
-
       try {
-        console.log(className);
-
         const response = await axios.post(
           "http://localhost:8000/create_class",
-          {}, // Empty body
+          {},
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -37,8 +34,11 @@ export default function CreateClass() {
             },
           }
         );
-        console.log(response.data);
+        if(response.status === 200) {
+          toast.success("Class created successfully!");
+        }
       } catch (error) {
+        toast.error("Error creating class. Please try again.");
         console.error("Error fetching classes:", error);
       }
       setClassName("");

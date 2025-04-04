@@ -1,16 +1,15 @@
 import { persistStore } from "redux-persist";
 import {store} from "../store/store";
-
+import { jwtDecode } from "jwt-decode";
 const persistor = persistStore(store);
 
 export const getToken = () => {
-  const itemStr = localStorage.getItem("user");
-  if (!itemStr) return null;
-
-  const item = JSON.parse(itemStr);
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+  const expiry = jwtDecode(token).exp
   const now = new Date();
-
-  if (now.getTime() > item.expiry) {
+  if(!expiry) return null;
+  if (now.getTime() > expiry*1000) {
     persistor.purge().then(() => {
       localStorage.removeItem("persist:root");
       window.location.reload();
@@ -20,6 +19,5 @@ export const getToken = () => {
     localStorage.clear();
     return null;
   }
-  const token = localStorage.getItem("token");
   return token;
 };

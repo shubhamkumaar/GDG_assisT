@@ -92,7 +92,31 @@ export default function AssignmentPage() {
     };
     getAssignment();
   }, []);
-
+  
+  async function submitAssignment() {
+    const formData = new FormData();
+    if (!file) {
+      alert("Please select a file to upload.");
+      return;
+    }
+    formData.append("assignment_id", "1");
+    formData.append("file", file);
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/assignment/submit_assignment",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("File uploaded successfully:", response.data);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
+  }
   const location = useLocation();
 
   const { title, dueDate, description, status, getter } = location.state;

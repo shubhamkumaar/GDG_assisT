@@ -11,15 +11,6 @@ const initialState: AuthState = {
   isAuthenticated: !!token,
 };
 
-const setUserWithExpiry = (key, value, ttl) => {
-  const now = new Date();
-  const item = {
-    value: value,
-    expiry: now.getTime() + ttl, // ttl in milliseconds
-  };
-  localStorage.setItem(key, JSON.stringify(item));
-};
-
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (
@@ -33,8 +24,7 @@ export const loginUser = createAsyncThunk(
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-      console.log(response.data.user.is_teacher);
-      setUserWithExpiry("user", response.data.user, 28 * 10 * 1000);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.access_token);
       return response.data;
     } catch (err: any) {
@@ -77,7 +67,7 @@ export const googleLogin = createAsyncThunk(
       const response = await api.get("/auth/google/login", {
         token: googleToken,
       });
-      setUserWithExpiry("user", response.data.user, 28 * 10 * 1000);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.access_token);
       return response.data;
     } catch (err: any) {
@@ -91,7 +81,7 @@ export const googleCallback = createAsyncThunk(
   async (code: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/auth/google/callback?code=${code}`);
-      setUserWithExpiry("user", response.data.user, 28 * 10 * 1000);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.access_token);
       console.log(response);
       return response.data;

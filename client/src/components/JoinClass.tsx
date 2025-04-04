@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-
+import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import {
   getClassCode,
@@ -7,7 +7,10 @@ import {
 } from "../features/joinPage/joinPageSlice";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { getToken } from "../utils/jwt";
+
 export default function JoinClass() {
+  const token = getToken();
   const [classCode, setClassCode] = useState("");
 
   const dispatch = useDispatch();
@@ -17,7 +20,8 @@ export default function JoinClass() {
     dispatch(getClassCode(classCode));
     dispatch(isJoiningClass(false));
     if (classCode === "") {
-      alert("Please enter a class code");
+      // alert("Please enter a class code");
+      toast.error("Please enter a class code");
       return;
     }
 
@@ -27,7 +31,7 @@ export default function JoinClass() {
         {}, // Empty body
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
           params: {
@@ -37,10 +41,12 @@ export default function JoinClass() {
       );
       console.log(response.data);
       if (response.status === 200) {
+        toast.success("Class joined successfully");
         dispatch(isJoiningClass(false));
         navigate("/classroom", { state: data });
       }
     } catch (error) {
+      toast.error("Failed to join class");
       console.error("Error fetching classes:", error);
     }
 
