@@ -5,6 +5,8 @@ import { isJoiningClass } from "../features/joinPage/joinPageSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
 import toast from "react-hot-toast";
+
+const API_URL = import.meta.env.VITE_API_URL;
 export default function CreateClass() {
   const token = getToken();
   const [className, setClassName] = useState("");
@@ -22,7 +24,7 @@ export default function CreateClass() {
       dispatch(isJoiningClass(false));
       try {
         const response = await axios.post(
-          "http://localhost:8000/create_class",
+          `${API_URL}/create_class`,
           {},
           {
             headers: {

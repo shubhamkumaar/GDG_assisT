@@ -74,7 +74,7 @@ export default function Assignment() {
               </div>
 
                 <Link
-                  to="assignment"
+                  to={`assignment?id=${assignment.id}`}
                   state={assignments[0]}
                   >
                   <p className ='text-gray-500 text-sm ml-6'>

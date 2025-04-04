@@ -6,6 +6,7 @@ import { isAddAssigement } from "../features/addAssigement/addAssigementSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
 
+const API_URL = import.meta.env.VITE_API_URL;
 export default function SetAssignment() {
   const token = getToken();
   const isAddAssigementValue = useSelector(
@@ -43,7 +44,7 @@ export default function SetAssignment() {
       }
       console.log(formData);
       const response = await axios.post(
-        "http://localhost:8000/assignment/create_assignment",
+        `${API_URL}/assignment/create_assignment`,
         formData,
         {
           headers: {

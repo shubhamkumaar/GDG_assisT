@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
 
+const API_URL = import.meta.env.VITE_API_URL;
 interface Assignment {
   assignment_id: number;
   assignment_name: string;
@@ -30,7 +31,7 @@ export default function TodoPage() {
   useEffect(() => {
     try {
       const getTodo = async () => {
-        const response = await axios.get("http://localhost:8000/todo", {
+        const response = await axios.get(`${API_URL}/todo`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

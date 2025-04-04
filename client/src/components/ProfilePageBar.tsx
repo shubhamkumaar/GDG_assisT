@@ -1,11 +1,14 @@
 import { useEffect } from "react";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function ProfilePageBar() {
   const token = getToken();
   useEffect(() => {
     const getProfile = async () => {
-      const response = await axios.get("http://localhost:8000/profile", {
+      const response = await axios.get(`${API_URL}/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

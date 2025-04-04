@@ -4,9 +4,14 @@ import { RootState } from "../store/store";
 import { getClassroomType } from "../features//classroomPage/classroomPageSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
+import toast from "react-hot-toast";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Announcement() {
-
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  const classId = urlParams.get("class_id");
   const token = getToken();
   const [expandedId, setExpandedId] = useState(null);
   const [canAnnouncement, setCanAnnouncement] = useState(false);
@@ -52,7 +57,15 @@ export default function Announcement() {
 
   async function sendAnnouncementend() {
     const formData = new FormData();
-    formData.append("class_id", "dd7fa7");
+    if(!subject || !message) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    if(classId === null) {
+      toast.error("Class ID is null");
+      return;
+    }
+    formData.append("class_id", classId);
     formData.append("subject", subject);
     formData.append("message", message);
 
@@ -63,7 +76,7 @@ export default function Announcement() {
     
     try {
       const response = await axios.post(
-        "http://localhost:8000/class/announcements",
+        `${API_URL}/class/announcements`,
         formData,
         {
           headers: {

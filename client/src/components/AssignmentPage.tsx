@@ -5,9 +5,16 @@ import { RootState } from "../store/store";
 import { isSidebarState } from "../features/isSidebar/isSidebarSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
+import toast from "react-hot-toast";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AssignmentPage() {
-  const token = getToken()
+  const getAssignmentId = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("id");
+  };
+  const token = getToken();
   const isTeacher = useSelector(
     (state: RootState) => state.isTeacherPage.isTeacher
   );
@@ -72,38 +79,45 @@ export default function AssignmentPage() {
       console.log("File selected:", selectedFile.name);
       console.log("File type:", file);
     } else {
-      alert("Please upload a valid PDF file.");
+      toast.error(
+        "Please select a valid PDF file. Other formats are not supported."
+      );
+      setFile(null);
     }
   };
 
   useEffect(() => {
     const getAssignment = async () => {
-      const response = await axios.get("http://localhost:8000/assignment", {
+      const response = await axios.get(`${API_URL}/assignment`, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
-        params:{
-            assignment_id: 1,
-        }
+        params: {
+          assignment_id: getAssignmentId(),
+        },
       });
-      
-      console.log("Assignment get",response.data);
+      console.log("Assignment get", response.data);
     };
     getAssignment();
   }, []);
-  
+
   async function submitAssignment() {
     const formData = new FormData();
     if (!file) {
       alert("Please select a file to upload.");
       return;
     }
-    formData.append("assignment_id", "1");
+    const id = getAssignmentId();
+    if (!id) {
+      toast.error("Assignment ID not found.");
+      return;
+    }
+    formData.append("assignment_id", id);
     formData.append("file", file);
     try {
       const response = await axios.post(
-        "http://localhost:8000/assignment/submit_assignment",
+        `${API_URL}/assignment/submit_assignment`,
         formData,
         {
           headers: {
