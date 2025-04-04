@@ -4,7 +4,10 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
 import { isSidebarState } from "../features/isSidebar/isSidebarSlice";
 import axios from "axios";
+import { getToken } from "../utils/jwt";
+
 export default function AssignmentPage() {
+  const token = getToken()
   const isTeacher = useSelector(
     (state: RootState) => state.isTeacherPage.isTeacher
   );
@@ -77,7 +80,7 @@ export default function AssignmentPage() {
     const getAssignment = async () => {
       const response = await axios.get("http://localhost:8000/assignment", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
         params:{

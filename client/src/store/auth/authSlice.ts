@@ -1,16 +1,23 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/api";
-import { AuthState, User } from "./types";
-
+import { AuthState } from "./types";
 const userData = localStorage.getItem("user");
 const token = localStorage.getItem("token");
-// console.log(userData);
 
 const initialState: AuthState = {
   user: userData && userData !== "undefined" ? JSON.parse(userData) : null,
   error: null,
   token: token || null,
   isAuthenticated: !!token,
+};
+
+const setUserWithExpiry = (key, value, ttl) => {
+  const now = new Date();
+  const item = {
+    value: value,
+    expiry: now.getTime() + ttl, // ttl in milliseconds
+  };
+  localStorage.setItem(key, JSON.stringify(item));
 };
 
 export const loginUser = createAsyncThunk(
@@ -27,7 +34,7 @@ export const loginUser = createAsyncThunk(
         },
       });
       console.log(response.data);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      setUserWithExpiry("user", response.data.user, 28 * 10 * 1000);
       localStorage.setItem("token", response.data.access_token);
       return response.data;
     } catch (err: any) {
@@ -40,7 +47,12 @@ export const loginUser = createAsyncThunk(
 export const signupUser = createAsyncThunk(
   "auth/signup",
   async (
-    userData: { name: string; email: string; password: string, is_teacher: boolean },
+    userData: {
+      name: string;
+      email: string;
+      password: string;
+      is_teacher: boolean;
+    },
     { rejectWithValue }
   ) => {
     try {
@@ -65,7 +77,7 @@ export const googleLogin = createAsyncThunk(
       const response = await api.get("/auth/google/login", {
         token: googleToken,
       });
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      setUserWithExpiry("user", response.data.user, 28 * 10 * 1000);
       localStorage.setItem("token", response.data.access_token);
       return response.data;
     } catch (err: any) {
@@ -79,7 +91,7 @@ export const googleCallback = createAsyncThunk(
   async (code: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/auth/google/callback?code=${code}`);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      setUserWithExpiry("user", response.data.user, 28 * 10 * 1000);
       localStorage.setItem("token", response.data.access_token);
       console.log(response);
       return response.data;

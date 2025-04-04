@@ -65,7 +65,7 @@ export default function Announcement() {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getToken.getItem("token")}`,
             "Content-Type": "multipart/form-data",
             Accept: "application/json",
           },

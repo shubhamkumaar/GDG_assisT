@@ -4,8 +4,10 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { isAddAssigement } from "../features/addAssigement/addAssigementSlice";
 import axios from "axios";
+import { getToken } from "../utils/jwt";
 
 export default function SetAssignment() {
+  const token = getToken();
   const isAddAssigementValue = useSelector(
     (state: RootState) => state.addAssigement.isAddAssigementValue
   );
@@ -45,7 +47,7 @@ export default function SetAssignment() {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
             Accept: "application/json",
           },

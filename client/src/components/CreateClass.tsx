@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { isJoiningClass } from "../features/joinPage/joinPageSlice";
 import axios from "axios";
+import { getToken } from "../utils/jwt";
 export default function CreateClass() {
+  const token = getToken();
   const [className, setClassName] = useState("");
 
   const dispatch = useDispatch();
@@ -27,7 +29,7 @@ export default function CreateClass() {
           {}, // Empty body
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: `Bearer ${token}`,
               Accept: "application/json",
             },
             params: {
@@ -40,7 +42,7 @@ export default function CreateClass() {
         console.error("Error fetching classes:", error);
       }
       setClassName("");
-      navigate('/classroom', { state: data });
+      navigate("/classroom", { state: data });
     } else dispatch(isJoiningClass(false));
     // tost will apper
   }

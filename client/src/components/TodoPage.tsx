@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { getToken } from "../utils/jwt";
 
 interface Assignment {
   assignment_id: number;
@@ -23,6 +24,7 @@ const formatDate = (dateString: string): string => {
 };
 
 export default function TodoPage() {
+  const token = getToken();
   const [assignmentArr, setAssignment] = useState<Assignment[] | null>([]);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function TodoPage() {
       const getTodo = async () => {
         const response = await axios.get("http://localhost:8000/todo", {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         console.log(response.data);

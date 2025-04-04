@@ -2,29 +2,20 @@ import { useEffect, useState } from "react";
 import ClassBox from "./ClassBox";
 // import Quiz from "./quiz";
 import axios from "axios";
+import { getToken } from "../utils/jwt";
 
-async function get_classes() {
-  try {
-    const response = await axios.get("http://localhost:8000/classes", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-    console.log(response);
-  } catch (error) {
-    console.error("Error fetching classes:", error);
-  }
-}
 export default function HomePage() {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const token = getToken();
   // const [error, setError] = useState(null);
   useEffect(() => {
     const fetchClasses = async () => {
       try {
         const response = await axios.get("http://localhost:8000/classes", {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         console.log(response.data);

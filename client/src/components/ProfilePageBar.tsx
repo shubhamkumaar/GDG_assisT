@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 import axios from "axios";
+import { getToken } from "../utils/jwt";
 export default function ProfilePageBar() {
+  const token = getToken();
   useEffect(() => {
     const getProfile = async () => {
       const response = await axios.get("http://localhost:8000/profile", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       console.log(response.data);
