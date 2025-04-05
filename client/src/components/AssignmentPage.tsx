@@ -87,31 +87,49 @@ export default function AssignmentPage() {
       setFile(null);
     }
   };
+  async function AutomaticChecker() {
+    try {
+      // const response = await axios.get("http://localhost:8000/automated_feedback", {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`,
+      //     Accept: "application/json",
+      //   },
+      //   data:{
+      //       assignment_id: assig_id,
+      //   }
+      // });
 
-  useEffect(() => {
-    const fetchAssignment = async () => {
-      const formData = new FormData();
-      console.log("file", file);
+      // console.log("Automated feedback", response.data);
       
-      if (file) {
-        formData.append("file", file); 
-      }
-        const response = await axios.post("http://localhost:8000/assignment/submit_assignment",
-          formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "message-Type": "multipart/form-data",
-            Accept: "application/json",
-          },
-          params:{
-              assignment_id: assig_id,
-          }
-        });
-        setFile(null);
-        console.log("Assignment get",response.data);
-      }
-      fetchAssignment();
-    }, [file]);
+    } catch (error) {
+      console.error("Error submitting assignment:", error);
+    }
+  }
+
+  // useEffect(() => {
+  //   const fetchAssignment = async () => {
+  //     const formData = new FormData();
+  //     console.log("file", file);
+      
+  //     if (file) {
+  //       formData.append("file", file); 
+  //     }
+  //       const response = await axios.post(`${API_URL}/assignment/submit_assignment`,
+  //         formData, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "message-Type": "multipart/form-data",
+  //           Accept: "application/json",
+  //         },
+  //         params:{
+  //             assignment_id: assig_id,
+  //         }
+  //       });
+  //       setFile(null);
+  //       console.log("Assignment get",response.data);
+  //     }
+  //     fetchAssignment();
+  //   }, [file]);
 
 
   useEffect(() => {
@@ -132,13 +150,13 @@ export default function AssignmentPage() {
 
   useEffect(() => {
     const getResult = async () => {
-      const response = await axios.get("http://localhost:8000/assignment/submissions", {
+      const response = await axios.get(`${API_URL}/assignment/submissions`, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
         params:{
-            assignment_id: 2,
+            assignment_id: assig_id,
         }
       });
       setAssignmentSubmits(response.data.submission);
@@ -152,7 +170,7 @@ export default function AssignmentPage() {
       alert("Please select a file to upload.");
       return;
     }
-    formData.append("assignment_id", "1");
+    formData.append("assignment_id", assig_id);
     formData.append("file", file);
     try {
       const response = await axios.post(
