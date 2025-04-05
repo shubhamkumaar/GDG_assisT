@@ -16,47 +16,47 @@ export default function AssignmentPage() {
   const { state } = useLocation();
   const assig_id = state?.id;
 
-  // const result = {
-  //   score: 78.0,
-  //   summary_bullets: [
-  //     "Strong conceptual understanding but needs more detailed examples",
-  //     "Consistent formatting errors in citations",
-  //     "Excellent time management evident in completion rate",
-  //   ],
-  //   detailed_feedback: {
-  //     strengths: [
-  //       "Demonstrated mastery of quadratic equations in Q3 and Q7",
-  //       "Clear thesis statement in essay introduction",
-  //       "Consistent use of technical terminology",
-  //     ],
-  //     areas_of_improvement: [
-  //       "Show working steps for mathematical proofs (lost 12% on incomplete proofs)",
-  //       "Include at least 3 peer-reviewed sources per argument",
-  //       "Use APA 7th edition formatting for all citations",
-  //     ],
-  //     question_details: [
-  //       {
-  //         question_id: "Q1",
-  //         score: 4.5,
-  //         rank: "Good",
-  //         basis: "Rubric Section II-A: Proper method but rounding errors",
-  //         feedback:
-  //           "Accurate setup but final answer missing units,Accurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing units",
-  //       },
-  //       {
-  //         question_id: "Q5",
-  //         score: 2.0,
-  //         rank: "Needs Work",
-  //         basis: "Rubric Section III-B: Missing required diagram",
-  //         feedback: "Theoretical answer correct but visual proof absent",
-  //       },
-  //     ],
-  //     rubric_summary:
-  //       "Grading criteria: 40% accuracy, 30% methodology, 20% presentation, 10% timeliness. Level descriptors: Excellent (9-10 pts): Exceeds requirements; Good (7-8.9 pts): Meets all requirements; Needs Work (<7 pts): Missing key elements.",
-  //     actual_summary:
-  //       "Your submission shows strong technical knowledge but lacks attention to formatting requirements. While your calculations are mostly correct (scoring 92% on accuracy), presentation errors cost 15% of total marks. Focus on citation formatting and showing complete working steps to reach A-grade level.",
-  //   },
-  // };
+  const result = {
+    score: 78.0,
+    summary_bullets: [
+      "Strong conceptual understanding but needs more detailed examples",
+      "Consistent formatting errors in citations",
+      "Excellent time management evident in completion rate",
+    ],
+    detailed_feedback: {
+      strengths: [
+        "Demonstrated mastery of quadratic equations in Q3 and Q7",
+        "Clear thesis statement in essay introduction",
+        "Consistent use of technical terminology",
+      ],
+      areas_of_improvement: [
+        "Show working steps for mathematical proofs (lost 12% on incomplete proofs)",
+        "Include at least 3 peer-reviewed sources per argument",
+        "Use APA 7th edition formatting for all citations",
+      ],
+      question_details: [
+        {
+          question_id: "Q1",
+          score: 4.5,
+          rank: "Good",
+          basis: "Rubric Section II-A: Proper method but rounding errors",
+          feedback:
+            "Accurate setup but final answer missing units,Accurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing units",
+        },
+        {
+          question_id: "Q5",
+          score: 2.0,
+          rank: "Needs Work",
+          basis: "Rubric Section III-B: Missing required diagram",
+          feedback: "Theoretical answer correct but visual proof absent",
+        },
+      ],
+      rubric_summary:
+        "Grading criteria: 40% accuracy, 30% methodology, 20% presentation, 10% timeliness. Level descriptors: Excellent (9-10 pts): Exceeds requirements; Good (7-8.9 pts): Meets all requirements; Needs Work (<7 pts): Missing key elements.",
+      actual_summary:
+        "Your submission shows strong technical knowledge but lacks attention to formatting requirements. While your calculations are mostly correct (scoring 92% on accuracy), presentation errors cost 15% of total marks. Focus on citation formatting and showing complete working steps to reach A-grade level.",
+    },
+  };
 
   // const students = [
   //   ...Array.from({ length: 20 }, (_, i) => ({
@@ -68,7 +68,10 @@ export default function AssignmentPage() {
 
   const [file, setFile] = useState(null);
   const [submit, setSubmit] = useState(false);
-  // const [isResultOut, setIsResultOut] = useState(true);
+  const [assignmentSubmits, setAssignmentSubmits] = useState([])
+  const [isResultOut, setIsResultOut] = useState(true);
+  const automationStarted = true
+  
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -121,6 +124,41 @@ export default function AssignmentPage() {
     };
     getAssignment();
   }, [token, assig_id]);
+
+  useEffect(() => {
+    const getResult = async () => {
+      const response = await axios.get("http://localhost:8000/assignment/submissions", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        params:{
+            assignment_id: 2,
+        }
+      });
+      setAssignmentSubmits(response.data.submission);
+    };
+    getResult();
+  }, []);
+
+  async function AutomaticChecker() {
+    try {
+      // const response = await axios.get("http://localhost:8000/automated_feedback", {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`,
+      //     Accept: "application/json",
+      //   },
+      //   data:{
+      //       assignment_id: assig_id,
+      //   }
+      // });
+
+      // console.log("Automated feedback", response.data);
+      
+    } catch (error) {
+      console.error("Error submitting assignment:", error);
+    }
+  }
   
 
   return (
@@ -200,7 +238,8 @@ export default function AssignmentPage() {
                 {/* <div className="text-[#f2f4f8] bg-[#8591ad] w-[10rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300">
                   <p className="text-center mt-3 font-semibold">Manual</p>
                 </div> */}
-                <div className="text-center  text-[#f2f4f8] bg-[#8591ad] w-[10rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300 ml-4">
+                <div onClick={AutomaticChecker}
+                className="text-center  text-[#f2f4f8] bg-[#8591ad] w-[10rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300 ml-4">
                   <p className="text-center mt-3 font-semibold"> Automatic </p>
                 </div>
               </div>
@@ -226,43 +265,48 @@ export default function AssignmentPage() {
         </div>
 
         {/* result part */}
-        {/* {!isResultOut ? (
-          <div className="w-[24rem] h-[10rem] mx-auto bg-red-50 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-            <div className="transition-all duration-300 ease-in-out">
-              <p className="text-red-800 text-3xl text-center mt-8">
-                Result is not out yet.
-              </p>
-              <p className="text-red-800 text-xl text-center mt-8">
-                Time: 3 days
-              </p>
-            </div>
+        {!isResultOut ? isTeacher ? automationStarted ?
+          <div className="flex flex-col w-[32rem] h-[32rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+            <h1 className="my-4 font-semibold text-2xl text-center " >Automation Status</h1>
+
+            
           </div>
-        ) : isTeacher ? (
+          : <div className="flex flex-col w-[32rem] h-[32rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+            <h1 className="my-4 font-semibold text-2xl text-center " >Submitted Listed</h1>
+            {assignmentSubmits.map((submit) => (
+              <div
+                key={submit.id}
+                className="p-4 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-300"
+              >
+                <div className="flex justify-between items-center">
+                  <p className="text-xl font-medium ml-4">
+                    {submit.student_name} 
+                  </p>
+                    <span className="cursor-pointer text-xl font-normal ml-2">
+                      view pdf
+                    </span>
+                </div>
+              </div>
+            ))}
+        </div>
+        : <div className="w-[24rem] h-[10rem] mx-auto bg-red-50 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+          <div className="transition-all duration-300 ease-in-out">
+            <p className="text-red-800 text-3xl text-center mt-8">
+              Result is not out yet.
+            </p>
+            <p className="text-red-800 text-xl text-center mt-8">
+              Time: 3 days
+            </p>
+          </div>
+        </div>
+        : isTeacher ? (
           <div className="flex flex-col w-[32rem] h-[32rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
             <div className="text-green-800 text-4xl mt-2 text-center">
               Result is out!
             </div>
             <div className="transition-all duration-300 ease-in-out overflow-y-auto hide-llbar">
               <div className=" p-4 rounded-lg overflow-y-auto">
-                <ul className="space-y-4 overflow-y-auto">
-                  {students.map((student) => (
-                    <li
-                      key={student.id}
-                      className={
-                        "p-4 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-300"
-                      }
-                    >
-                      <div className="flex justify-between items-center">
-                        <p className="text-xl font-semibold">
-                          {student.name} 👉🏻
-                          <span className="text-xl font-semibold ml-2">
-                            {student.marks}/100
-                          </span>
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                // After the result is out, the teacher can see the result of each student
               </div>
             </div>
           </div>
@@ -304,7 +348,9 @@ export default function AssignmentPage() {
               </Link>
             </div>
           </div>
-        )} */}
+        )}
+
+
       </div>
     </div>
   );

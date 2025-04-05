@@ -2,6 +2,7 @@ import { Link,useLocation } from 'react-router-dom';
 import { RootState } from '../store/store';
 import { useSelector, useDispatch } from 'react-redux';
 import { getfeedbackType } from '../features/feedbackType/feedbackTypeSlice';
+import { isSidebarState } from '../features/isSidebar/isSidebarSlice';
 
 export default function AssignmentFeedback() {
 
@@ -17,6 +18,7 @@ export default function AssignmentFeedback() {
             <div className='bg-[#ced3df] w-full h-[10vh]'>
                 <div  className='flex flex-row items-center justify-between h-[10vh]'>
                     <Link
+                    onClick={() => dispatch(isSidebarState(false))}
                         to="..">
                         <img className='h-8 w-8 ml-[1.5rem] cursor-pointer'
                             src="/Goback.svg" alt="Goback" />
