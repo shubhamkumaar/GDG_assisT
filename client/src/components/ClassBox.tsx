@@ -38,36 +38,36 @@ export default function ClassBox() {
     {classrooms.map((classroom) => (
         <Link
           key={classroom.class_id}
-          className="bg-[#8591ad] w-[20rem] h-[21rem] rounded-2xl mt-12 ml-16"
+          className="bg-[#8591ad] w-[20rem] h-[20rem] rounded-2xl mt-12 ml-16"
           to={`/classroom`}
           state={{ id: classroom.class_id,class_name : classroom.class_name, teacher_name: classroom.teacher_name, 
             teacher_email: classroom.teacher_email}}
         >
           <div className='flex flex-row items-center justify-between'>
             <div className="flex flex-col justify-between p-4">
-              <div className="text-3xl font-semibold text-[#F2F4F8] cursor-pointer ml-6">
+              <div className="text-xl font-semibold text-[#F2F4F8] cursor-pointer ml-6">
                 {classroom.class_name}
               </div>
-              <div className="text-2xl font-medium text-[#F2F4F8] cursor-pointer ml-6">
+              <div className="text-lg font-medium text-[#F2F4F8] cursor-pointer ml-6">
                 {classroom.teacher_name}
               </div>
             </div>
             <div className="flex flex-row justify-center p-4">
               {classroom.notification ? (
                 <img 
-                  className='h-8 w-8 mx-2 cursor-pointer'
+                  className='h-6 w-6 mx-2 cursor-pointer'
                   src="/YesNotify.svg" 
                   alt="yes-Notification" 
                 />
               ) : (
                 <img 
-                  className='h-8 w-8 mx-2 cursor-pointer'
+                  className='h-6 w-6 mx-2 cursor-pointer'
                   src="/NoNotify.svg" 
                   alt="No-Notification" 
                 />
               )}
               <img 
-                className='h-8 w-8 mx-2 cursor-pointer'
+                className='h-6 w-6 mx-2 cursor-pointer'
                 src="ThreeDot.svg" 
                 alt="ThreeDot" 
               />
@@ -92,12 +92,12 @@ export default function ClassBox() {
 
           <div className='flex flex-row items-center justify-end mt-4 mr-4'>
             <img 
-              className='h-8 w-8 mx-2 cursor-pointer mr-4'
+              className='h-6 w-6 mx-2 cursor-pointer mr-4'
               src="Collection.svg" 
               alt="Collection" 
             />
             <img 
-              className='h-8 w-8 mx-2 cursor-pointer mr-4'
+              className='h-6 w-6 mx-2 cursor-pointer mr-4'
               src="OtherPage.svg" 
               alt="OtherPage" 
             />
@@ -119,12 +119,12 @@ export default function ClassBox() {
       //   </div>
       //   <div className="flex flex-row justify-center p-4">
       //     { notification ?
-      //         <img className='h-8 w-8 mx-2 cursor-pointer'
+      //         <img className='h-6 w-6 mx-2 cursor-pointer'
       //           src="/NoNotify.svg" alt="No-Notification" />
-      //         : <img className='h-8 w-8 mx-2 cursor-pointer'
+      //         : <img className='h-6 w-6 mx-2 cursor-pointer'
       //           src="/YesNotify.svg" alt="yes-Notification" />
       //     }
-      //     <img className='h-8 w-8 mx-2 cursor-pointer'
+      //     <img className='h-6 w-6 mx-2 cursor-pointer'
       //       src="ThreeDot.svg" alt="ThreeDot" />
       //   </div>
       // </div>
@@ -146,9 +146,9 @@ export default function ClassBox() {
       // <hr className="h-px mt-6 bg-[#AAB2C6] border-0" />
 
       // <div className='flex flex-row items-center justify-end mt-4 mr-4'>
-      //   <img className='h-8 w-8 mx-2 cursor-pointer mr-4'
+      //   <img className='h-6 w-6 mx-2 cursor-pointer mr-4'
       //     src="Collection.svg" alt="Collection" />
-      //   <img className='h-8 w-8 mx-2 cursor-pointer mr-4'
+      //   <img className='h-6 w-6 mx-2 cursor-pointer mr-4'
       //     src="OtherPage.svg" alt="OtherPage" />
       // </div>
 

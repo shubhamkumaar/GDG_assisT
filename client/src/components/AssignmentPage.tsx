@@ -69,7 +69,8 @@ export default function AssignmentPage() {
   const [file, setFile] = useState(null);
   const [submit, setSubmit] = useState(false);
   const [assignmentSubmits, setAssignmentSubmits] = useState([])
-  const [isResultOut, setIsResultOut] = useState(true);
+  const [isResultOut, setIsResultOut] = useState(false);
+  
   const automationStarted = true
   
 
@@ -81,6 +82,40 @@ export default function AssignmentPage() {
       alert("Please upload a valid PDF file.");
     }
   };
+
+  const value = [
+    {
+      id: 1,
+      name: "Student 1",
+      status: "completed",
+    },
+    {
+      id: 2,
+      name: "Student 2",
+      status: "completed",
+    },
+    {
+      id: 3,
+      name: "Student 3",
+      status: "completed",
+    },
+    {
+      id: 4,
+      name: "Student 4",
+      status: "completed",
+    },
+    {
+      id: 5,
+      name: "Student 5",
+      status: "completed",
+    },
+    // {
+    //   id: 6,
+    //   name: "Student 6",
+    //   status: "completed",
+    // }
+  ]
+
 
   useEffect(() => {
     const fetchAssignment = async () => {
@@ -266,13 +301,41 @@ export default function AssignmentPage() {
 
         {/* result part */}
         {!isResultOut ? isTeacher ? automationStarted ?
-          <div className="flex flex-col w-[32rem] h-[32rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-            <h1 className="my-4 font-semibold text-2xl text-center " >Automation Status</h1>
+          <div className="flex flex-col w-[32rem] h-[36rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+            <h1 className="my-4 font-semibold text-2xl text-center">Automation Status</h1>
 
-            
+            <div className="flex flex-col justify-center items-center gap-2 overflow-auto w-full hide-scrollbar h-[32rem]">
+            {value.map((student) => (
+                <div
+                  key={student.id}
+                  className="bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors w-[45vh] flex flex-row justify-around items-start p-4 shadow-md hover:shadow-lg"
+                >
+                  <div className="flex flex-col justify-center items-center">
+                    <h3 className="text-lg font-medium text-gray-800">
+                      {student.name}
+                    </h3>
+                    <span className={`text-sm px-2 py-1 rounded ${
+                      student.status === 'completed' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {student.status}
+                    </span>
+                  </div>
+                  
+                  <Link
+                  onClick={() => dispatch(isSidebarState(true))}
+                    to="result-review">
+                    <button className="mt-3 py-2 text-sm text-gray-700 hover:scale-[1.05] rounded cursor-pointer transition-colors">
+                      View PDF
+                    </button>
+                  </Link>
+
+                </div>
+              ))}
+            </div>
+
           </div>
           : <div className="flex flex-col w-[32rem] h-[32rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-            <h1 className="my-4 font-semibold text-2xl text-center " >Submitted Listed</h1>
+            <h1 className="my-4 font-semibold text-2xl text-center">Submitted Listed</h1>
             {assignmentSubmits.map((submit) => (
               <div
                 key={submit.id}

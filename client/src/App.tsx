@@ -17,6 +17,7 @@ import SignUpPage from "./components/SignUp";
 import WorkingPage from "./components/WorkingPage";
 import Layout from "./Layout";
 import { RootState } from "./store/store";
+import ResultReview from "./components/ResultReview";
 function App() {
   const ProtectedRoute = () => {
     const token = useSelector((state: RootState) => state.auth.token);
@@ -50,6 +51,10 @@ function App() {
             <Route
               path="classroom/assignment/result-feedback"
               element={<AssignmentFeedback />}
+            />
+            <Route
+              path="classroom/assignment/result-review"
+              element={<ResultReview />}
             />
             <Route path="working" element={<WorkingPage />} />
           </Route>
