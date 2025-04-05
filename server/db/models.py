@@ -54,6 +54,7 @@ class Submissions(Base):
     student_id = Column(Integer, ForeignKey('users.id'))
     marks = Column(Numeric(5,2))
     feedback = Column(String)
+    ocr_text = Column(String)
 
 class Class_Students(Base):
     __tablename__ = 'class_students'

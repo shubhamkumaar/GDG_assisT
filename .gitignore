@@ -41,6 +41,8 @@ Thumbs.db
 
 # Temporary files
 tmp/
+*.rdb
+temp.md
 
 # Google Cloud Platform
 credentials.json
