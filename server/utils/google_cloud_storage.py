@@ -15,13 +15,21 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = Settings.GOOGLE_APPLICATION_CREDE
 
 
 # Uploads a file to the bucket
-async def upload_file(file):
+async def upload_file(file, file_name=None):
     if not file:
         return {"message": "file not found", "status": 404}
     # Save the file to the server
-    source_file_path = f"./server/tmp/{file.filename}"
-    with open(source_file_path, "wb") as buffer:
-        buffer.write(await file.read())
+    if not os.path.exists("./server/tmp"):
+        os.makedirs("./server/tmp")
+    if isinstance(file,bytes):
+        # If the file is a bytes object, save it directly
+        source_file_path = f"./server/tmp/{file_name}"
+        with open(source_file_path, "wb") as buffer:
+            buffer.write(file)
+    else:
+        source_file_path = f"./server/tmp/{file.filename}"
+        with open(source_file_path, "wb") as buffer:
+            buffer.write(await file.read())
 
     # Initialize a storage client
     storage_client = storage.Client()

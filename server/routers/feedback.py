@@ -11,6 +11,7 @@ from functools import lru_cache
 import requests
 from server import config
 from server.utils.gemini import gemini_generation_config,safety_settings, wait_for_files_active, upload_to_gemini, gemini_generation_config_thinking
+from server.utils.google_cloud_storage import upload_file as upload_to_gcs
 import server.db.models as models
 from server.routers.check_answer import ocr_response_mistral, save_images_ocr, ocr_response_gemini, ocr_answer_submission
 from sqlalchemy.orm import Session
@@ -842,6 +843,32 @@ def xml_to_json(xml:str)->str:
     cleaned_data = cleanup_feedback_dict(doc)
     return cleaned_data
 
+def process_ocr_for_db(job_id:str, request_id:str)->str:
+    # temp dir where the response.md file is stored
+    temp_dir = f"./tmp/{job_id}/{request_id}"
+    # now we check if the response.md file is present
+    if not os.path.exists(f"{temp_dir}/response.md"):
+        return {"error": "Response file not found"}
+    # read the response.md file
+    with open(f"{temp_dir}/response.md", "r") as f:
+        response = f.read()
+    # we upload all the images in the temp_dir to gcs
+    # and replace the image paths in the response with the gcs urls
+    images = []
+    for file in os.listdir(temp_dir):
+        if file.endswith(".png") or file.endswith(".jpg") or file.endswith(".jpeg"):
+            # upload the image to gcs
+            image_path = os.path.join(temp_dir, file)
+            with open(image_path, "rb") as img_file:
+                image_data = img_file.read()
+            # upload to gcs
+            gcs_url = upload_to_gcs(image_data, file)["file_url"]
+            images.append((file, gcs_url))
+    # replace the image path in the response with the gcs url
+    for file, gcs_url in images:
+        response = response.replace(f"![{file}]", f"![{gcs_url}]")
+    return response
+
 def give_feedback(db: db_dependency,submission_id: str):    
     # first we get the corresponding submission
     submission = db.query(models.Submissions).filter(models.Submissions.id == submission_id).first()
@@ -1005,7 +1032,8 @@ def give_feedback(db: db_dependency,submission_id: str):
     
     submission.feedback = json.dumps(json_data)
     submission.marks = json_data["score"]
-
+    ocr_text = process_ocr_for_db(job_id, request_id)
+    submission.ocr_text = ocr_text
     db.commit()
     # update status of the submission object inside the above to completed
     assignment_object = get_redis_cache(f"assignment_{assignment.id}")
