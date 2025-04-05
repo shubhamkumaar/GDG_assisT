@@ -1109,9 +1109,12 @@ def queue_feedback(db: db_dependency, assignment_id: str, background_tasks: Back
         # check if the feedback is already generated
         if submission.feedback is not None:
             continue
+        # find the user who submitted the assignment
+        student = db.query(models.User).filter(models.Users.id == submission.student_id).first()
         assignment_object = get_redis_cache(f"assignment_{assignment_id}")
         submission_obj = {
             "id": submission.id,
+            "student_name": student.name,
             "status": "pending"
         }
         assignment_object["submissions"].append(submission_obj)
