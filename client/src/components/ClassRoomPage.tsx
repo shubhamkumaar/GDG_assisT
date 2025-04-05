@@ -8,8 +8,9 @@ import Announcement from "./Announcement";
 import Assignment from "./Assignment";
 import Student from "./Student";
 import { getToken } from "../utils/jwt";
-import { TbDentalBroken } from "react-icons/tb";
+import toast from "react-hot-toast";
 
+const API_URL = import.meta.env.VITE_API_URL;
 export default function ClassRoomPage() {
 
     const token = getToken();
@@ -66,18 +67,19 @@ export default function ClassRoomPage() {
 
   useEffect(() => {
     const fetchMaterial = async () => {
+      if (!classId) {
+        toast.error("Class ID not found");
+        return;
+      }
       try {
-        const response = await axios.get(
-          "http://localhost:8000/class/materials",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            params: {
-              class_id: "dd7fa7",
-            },
-          }
-        );
+        const response = await axios.get(`${API_URL}/class/materials`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            class_id: classId,
+          },
+        });
         console.log("Material", response.data);
         setAnnouncement(response.data);
         setLoading(false);
@@ -86,22 +88,23 @@ export default function ClassRoomPage() {
       }
     };
     fetchMaterial();
-  }, [token]);
+  }, [classId, token]);
 
   useEffect(() => {
     const fetchAnnouncment = async () => {
+      if (!classId) {
+        toast.error("Class ID not found");
+        return;
+      }
       try {
-        const response = await axios.get(
-          "http://localhost:8000/class/assignments",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            params: {
-              class_id: "dd7fa7",
-            },
-          }
-        );
+        const response = await axios.get(`${API_URL}/class/assignments`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            class_id: classId,
+          },
+        });
         console.log("Assignment", response.data);
         setAnnouncement(response.data);
         setLoading(false);
@@ -110,8 +113,35 @@ export default function ClassRoomPage() {
       }
     };
     fetchAnnouncment();
-  }, [token]);
+  }, [classId, token]);
 
+  useEffect(() => {
+    const fetchStudents = async () => {
+      if (!classId) {
+        toast.error("Class ID not found");
+        return;
+      }
+      try {
+        const response = await axios.get(
+          `${API_URL}/class/students`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: {
+              class_id: classId,
+            },
+          }
+        );
+        console.log("Students", response.data);
+        setStudent(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+      }
+    };
+    fetchStudents();
+  }, [classId, token]);
 
   return (
     <div className=" flex flex-col  bg-[#F2F4F8] w-full h-screen">

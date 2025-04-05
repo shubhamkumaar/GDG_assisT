@@ -1,12 +1,6 @@
-// import { useEffect, useState } from "react";
 import ClassBox from "./ClassBox";
-// import Quiz from "./quiz";
-// import axios from "axios";
-// import { getToken } from "../utils/jwt";
 
 export default function HomePage() {
- 
-
   return (
     // <h1>hello</h1>
     //   <Quiz />

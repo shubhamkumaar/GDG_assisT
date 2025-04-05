@@ -1,10 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
 import { isSidebarState } from "../features/isSidebar/isSidebarSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
+import toast from "react-hot-toast";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AssignmentPage() {
 
@@ -78,7 +81,10 @@ export default function AssignmentPage() {
     if (selectedFile) {
       setFile(selectedFile);
     } else {
-      alert("Please upload a valid PDF file.");
+      toast.error(
+        "Please select a valid PDF file. Other formats are not supported."
+      );
+      setFile(null);
     }
   };
 
@@ -110,7 +116,7 @@ export default function AssignmentPage() {
 
   useEffect(() => {
     const getAssignment = async () => {
-      const response = await axios.get("http://localhost:8000/assignment", {
+      const response = await axios.get(`${API_URL}/assignment`, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
@@ -119,8 +125,7 @@ export default function AssignmentPage() {
             assignment_id: assig_id,
         }
       });
-      
-      console.log("Assignment get",response.data);
+      console.log("Assignment get", response.data);
     };
     getAssignment();
   }, [token, assig_id]);
@@ -140,21 +145,27 @@ export default function AssignmentPage() {
     };
     getResult();
   }, []);
-
-  async function AutomaticChecker() {
+  
+  async function submitAssignment() {
+    const formData = new FormData();
+    if (!file) {
+      alert("Please select a file to upload.");
+      return;
+    }
+    formData.append("assignment_id", "1");
+    formData.append("file", file);
     try {
-      // const response = await axios.get("http://localhost:8000/automated_feedback", {
-      //   headers: {
-      //     Authorization: `Bearer ${token}`,
-      //     Accept: "application/json",
-      //   },
-      //   data:{
-      //       assignment_id: assig_id,
-      //   }
-      // });
-
-      // console.log("Automated feedback", response.data);
-      
+      const response = await axios.post(
+        "http://localhost:8000/assignment/submit_assignment",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("File uploaded successfully:", response.data);
     } catch (error) {
       console.error("Error submitting assignment:", error);
     }
