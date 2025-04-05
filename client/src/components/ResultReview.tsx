@@ -1,7 +1,7 @@
-
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { isSidebarState } from '../features/isSidebar/isSidebarSlice';
+import { useState } from 'react';
 
 export default function ResultReview() {
     const dispatch = useDispatch();
@@ -114,8 +114,8 @@ export default function ResultReview() {
                     <Link
                         onClick={() => dispatch(isSidebarState(false))}
                         to="..">
-                        <img className='h-8 w-8 ml-[1.5rem] cursor-pointer'
-                            src="/Goback.svg" alt="Goback" />
+                    <img className='h-8 w-8 ml-[1.5rem] cursor-pointer'
+                        src="/Goback.svg" alt="Goback" />
                     </Link>
                     <div className="flex flex-row z-10">
                         <div className='text-xl font-semibold text-[#545E79] cursor-pointer'>Subject Name</div>
@@ -127,7 +127,6 @@ export default function ResultReview() {
             <div className="absolute top-[14vh] h-[82vh] overflow-auto space-y-6 hide-scrollbar w-full px-4">
                 {feedbackData.map((item) => {
                     const isExpanded = expandedItems.includes(item.questionId);
-                    
                     return (
                         <div
                             key={item.questionId}

@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
 import { isSidebarState } from "../features/isSidebar/isSidebarSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
 import toast from "react-hot-toast";
+import { log } from "console";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -74,7 +75,7 @@ export default function AssignmentPage() {
   const [assignmentSubmits, setAssignmentSubmits] = useState([])
   const [isResultOut, setIsResultOut] = useState(false);
   
-  const automationStarted = true
+  const [automationStarted, setAutomationStarted] = useState(false);
   
 
   const handleFileChange = (e) => {
@@ -142,8 +143,8 @@ export default function AssignmentPage() {
               assignment_id: assig_id,
           }
         });
-        setFile(null);
         console.log("Assignment get",response.data);
+        setFile(null);
       }
       fetchAssignment();
     }, [file]);
@@ -166,6 +167,7 @@ export default function AssignmentPage() {
     getAssignment();
   }, [token, assig_id]);
 
+
   useEffect(() => {
     const getResult = async () => {
       const response = await axios.get("http://localhost:8000/assignment/submissions", {
@@ -174,28 +176,30 @@ export default function AssignmentPage() {
           Accept: "application/json",
         },
         params:{
-            assignment_id: 2,
+            assignment_id: assig_id,
         }
       });
+      console.log("here",response.data.submission)
       setAssignmentSubmits(response.data.submission);
     };
     getResult();
-  }, []);
+  }, [assig_id,token]);
+
+
 
   async function AutomaticChecker() {
     try {
-      // const response = await axios.get("http://localhost:8000/automated_feedback", {
-      //   headers: {
-      //     Authorization: `Bearer ${token}`,
-      //     Accept: "application/json",
-      //   },
-      //   data:{
-      //       assignment_id: assig_id,
-      //   }
-      // });
+      const formData = new FormData();
+      formData.append("assignment_id", assig_id);
+      const response = await axios.post("http://localhost:8000/automated_feedback", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
 
-      // console.log("Automated feedback", response.data);
-      
+      console.log("Automated feedback", response.data);
+      setAutomationStarted(!automationStarted);
     } catch (error) {
       console.error("Error submitting assignment:", error);
     }
@@ -432,7 +436,7 @@ export default function AssignmentPage() {
             {assignmentSubmits.map((submit) => (
               <div
                 key={submit.id}
-                className="p-4 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-300"
+                className="p-4 m-4 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-300"
               >
                 <div className="flex justify-between items-center">
                   <p className="text-xl font-medium ml-4">
