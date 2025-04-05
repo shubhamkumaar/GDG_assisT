@@ -50,7 +50,7 @@ export default function ClassRoomPage() {
     useEffect(()=>{
         const fetchAnnouncment = async () => {
             try {
-                const response = await axios.get("http://localhost:8000/class/announcements", {
+                const response = await axios.get(`${API_URL}/class/announcements`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`,
                     },

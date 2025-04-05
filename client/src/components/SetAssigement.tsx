@@ -38,7 +38,7 @@ export default function SetAssignment() {
       if (!title || !description) {
         toast.error("Please fill in title and description fields");
       }
-      formData.append("class_id", "dd7fa7");
+      formData.append("class_id", class_id);
       formData.append("name", title);
 
       formData.append("description", description);
