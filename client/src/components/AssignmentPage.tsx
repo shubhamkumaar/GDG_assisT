@@ -183,9 +183,13 @@ export default function AssignmentPage() {
           },
         }
       );
-      console.log("File uploaded successfully:", response.data);
+
+      toast('Good Job! Successfully submitted assignment' , {
+        icon: '👏',
+      });
     } catch (error) {
-      console.error("Error submitting assignment:", error);
+      toast.error("Error uploading file. Please try again.");
+      console.error("Error uploading file:", error);
     }
   }
   

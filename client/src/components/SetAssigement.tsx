@@ -5,6 +5,7 @@ import { RootState } from "../store/store";
 import { isAddAssigement } from "../features/addAssigement/addAssigementSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
+import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -34,7 +35,10 @@ export default function SetAssignment() {
   async function createAssignment() {
     try {
       const formData = new FormData();
-      formData.append("class_id", class_id );
+      if (!title || !description) {
+        toast.error("Please fill in title and description fields");
+      }
+      formData.append("class_id", "dd7fa7");
       formData.append("name", title);
 
       formData.append("description", description);
@@ -44,7 +48,6 @@ export default function SetAssignment() {
       if (dueDate) {
         formData.append("deadline", dueDate);
       }
-      console.log(formData);
       const response = await axios.post(
         `${API_URL}/assignment/create_assignment`,
         formData,
@@ -56,16 +59,20 @@ export default function SetAssignment() {
           },
         }
       );
-      console.log(response.data);
-      setTitle("");
-      setDueDate(null);
-      setDescription("");
-      setFile(null);
-      dispatch(isAddAssigement(false));
+      if (response.status === 200) {
+        toast.success("Assignment created successfully");
+        setFile(null);
+        setTitle("");
+        setDueDate(null);
+        setDescription("");
+        dispatch(isAddAssigement(!isAddAssigementValue));
+      } else {
+        toast.error("Failed to create assignment");
+      }
     } catch (error) {
+      toast.error("Error creating assignment");
       console.error("Error creating assignment:", error);
     }
-    console.log("Assignment created:", title, dueDate, description, file);
   }
 
   return (
@@ -88,10 +95,10 @@ export default function SetAssignment() {
               />
               <label className="text-sm font-medium sr-only">Due Date</label>
               <input
-  onChange={(e) => setDueDate(e.target.value)}
-  type="datetime-local"
-  className="w-full px-4 py-3 border-2 border-[#545E79] rounded-lg focus:ring-2 focus:ring-[#545E79] focus:outline-none transition-all duration-200"
-/>
+                onChange={(e) => setDueDate(e.target.value)}
+                type="datetime-local"
+                className="w-full px-4 py-3 border-2 border-[#545E79] rounded-lg focus:ring-2 focus:ring-[#545E79] focus:outline-none transition-all duration-200"
+              />
               <label className="text-sm font-medium sr-only">Description</label>
               <input
                 value={description}

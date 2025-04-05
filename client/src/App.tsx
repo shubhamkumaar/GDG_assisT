@@ -44,7 +44,7 @@ function App() {
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Layout />}>
-          <Route index element={<WorkingPage />} />
+            <Route index element={<WorkingPage />} />
             <Route path="classroom" element={<ClassRoomPage />} />
             <Route path="classroom/assignment" element={<AssignmentPage />} />
             <Route
