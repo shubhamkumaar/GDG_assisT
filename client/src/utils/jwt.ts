@@ -13,9 +13,8 @@ export const getToken = () => {
     persistor.purge().then(() => {
       localStorage.removeItem("persist:root");
       window.location.reload();
-      alert("Session expired. Please log in again.");
     });
-
+    
     localStorage.clear();
     return null;
   }

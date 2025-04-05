@@ -1,10 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
 import { isSidebarState } from "../features/isSidebar/isSidebarSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
+import toast from "react-hot-toast";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AssignmentPage() {
 
@@ -79,7 +82,10 @@ export default function AssignmentPage() {
     if (selectedFile) {
       setFile(selectedFile);
     } else {
-      alert("Please upload a valid PDF file.");
+      toast.error(
+        "Please select a valid PDF file. Other formats are not supported."
+      );
+      setFile(null);
     }
   };
 
@@ -192,6 +198,93 @@ export default function AssignmentPage() {
       
     } catch (error) {
       console.error("Error submitting assignment:", error);
+    }
+  }
+
+  // useEffect(() => {
+  //   const fetchAssignment = async () => {
+  //     const formData = new FormData();
+  //     console.log("file", file);
+      
+  //     if (file) {
+  //       formData.append("file", file); 
+  //     }
+  //       const response = await axios.post(`${API_URL}/assignment/submit_assignment`,
+  //         formData, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "message-Type": "multipart/form-data",
+  //           Accept: "application/json",
+  //         },
+  //         params:{
+  //             assignment_id: assig_id,
+  //         }
+  //       });
+  //       setFile(null);
+  //       console.log("Assignment get",response.data);
+  //     }
+  //     fetchAssignment();
+  //   }, [file]);
+
+
+  useEffect(() => {
+    const getAssignment = async () => {
+      const response = await axios.get(`${API_URL}/assignment`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        params:{
+            assignment_id: assig_id,
+        }
+      });
+      console.log("Assignment get", response.data);
+    };
+    getAssignment();
+  }, [token, assig_id]);
+
+  useEffect(() => {
+    const getResult = async () => {
+      const response = await axios.get(`${API_URL}/assignment/submissions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        params:{
+            assignment_id: assig_id,
+        }
+      });
+      setAssignmentSubmits(response.data.submission);
+    };
+    getResult();
+  }, []);
+  
+  async function submitAssignment() {
+    const formData = new FormData();
+    if (!file) {
+      alert("Please select a file to upload.");
+      return;
+    }
+    formData.append("assignment_id", assig_id);
+    formData.append("file", file);
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/assignment/submit_assignment",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast('Good Job! Successfully submitted assignment' , {
+        icon: '👏',
+      });
+    } catch (error) {
+      toast.error("Error uploading file. Please try again.");
+      console.error("Error uploading file:", error);
     }
   }
   

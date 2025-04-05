@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function JoinClass() {
   const token = getToken();
   const [classCode, setClassCode] = useState("");
@@ -27,7 +29,7 @@ export default function JoinClass() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/join_class",
+        `${API_URL}/join_class`,
         {}, // Empty body
         {
           headers: {
