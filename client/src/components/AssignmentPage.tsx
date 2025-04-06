@@ -41,19 +41,18 @@ export default function AssignmentPage() {
     max_score: 0,
     summary_bullets: [],
   });
-  
+
   const [file, setFile] = useState(null);
-  const [submit, setSubmit] = useState(false);
   const [assignmentSubmits, setAssignmentSubmits] = useState([]);
   const [isResultOut, setIsResultOut] = useState(false);
   const [statusFeedback, setStatusFeedback] = useState([]);
   const [getFeedback, setGetFeedback] = useState([]);
   const [automationStarted, setAutomationStarted] = useState(true);
-  const [assignmentDetials, setAssignmentDetails] = useState<Assignment[]>([])
+  const [assignmentDetials, setAssignmentDetails] = useState<Assignment[]>([]);
   const [teacherAssignment, setTeacherAssignment] = useState([]);
   console.log("teacherAssignment", teacherAssignment);
   console.log("assignmentDetials", assignmentDetials);
-  
+
   const [resultValue, setResultValue] = useState(false);
   console.log("feedbackData", feedbackData);
 
@@ -70,6 +69,7 @@ export default function AssignmentPage() {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
+      toast.success("File selected successfully!");
       setFile(selectedFile);
     } else {
       toast.error(
@@ -224,8 +224,12 @@ export default function AssignmentPage() {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
+          params: {
+            assignment_id: assig_id,  
+          },
         }
       );
+      console.log(response);
 
       toast("Good Job! Successfully submitted assignment", {
         icon: "👏",
@@ -301,44 +305,58 @@ export default function AssignmentPage() {
               {assignmentDetials[0].assignment_name}
             </h2>
 
-            <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
-              <span className="font-semibold">Due Date:</span>{" "}
-              {assignmentDetials[0].deadline}
-            </p>
+              <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
+                <span className="font-semibold">Due Date:</span>{" "}
+                {assignmentDetials[0].deadline}
+              </p>
 
-            <p className="text-gray-700 text-lg ml-4 mt-4">
-              {assignmentDetials[0].assignment_description}
-            </p>
+              <p className="text-gray-700 text-lg ml-4 mt-4">
+                {assignmentDetials[0].assignment_description}
+              </p>
 
-            <div>
-              <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
-                Files:
-              </h3>
-              <p className="text-gray-700 ml-6">{assignmentDetials[0].file}</p>
-            </div>
-            </div>}
+              <div>
+                <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
+                  Files:
+                </h3>
 
-            {!isTeacher && (
-              <div className="flex items-center ml-4 mt-4">
-                <span className="font-bold text-lg text-gray-800">Status:</span>
-                <span
-                  className={`ml-2 px-2 py-1 text-sm ${
-                    true
-                      ? "text-green-500 bg-green-100"
-                      : "text-red-500 bg-red-100"
-                  } text-sm rounded-full`}
+                <a
+                  href={assignmentDetials[0].file}
+                  target="_blank"
+                  className="text-gray-700 ml-6 mt-2 hover:text-blue-500"
                 >
-                  status
-                </span>
+                  {
+                    decodeURIComponent(
+                      assignmentDetials[0].file.split("/").pop() || ""
+                    ).split("_")[1]
+                  }
+                  {/* {.split("/").pop().split("_")[1].replace("%20", " ")} */}
+                </a>
+                {/* <p className="text-gray-700 ml-6">{assignmentDetials[0].file}</p> */}
               </div>
-            )}
-          </div>
+              </div>}
+              {!isTeacher && (
+                <div className="flex items-center ml-4 mt-4">
+                  <span className="font-bold text-lg text-gray-800">
+                    Status:
+                  </span>
+                  <span
+                    className={`ml-2 px-2 py-1 text-sm ${
+                      true
+                        ? "text-green-500 bg-green-100"
+                        : "text-red-500 bg-red-100"
+                    } text-sm rounded-full`}
+                  >
+                    status
+                  </span>
+                </div>
+              )}
+            </div>
 
-          {isTeacher ? (
-            <div className="mt-4 p-6 border-t border-gray-200 ">
-              <h3 className="font-bold text-2xl text-[#545e79]">Mode</h3>
-              <div className="flex flex-row justify-start items-center mt-4">
-                {/* <div className="text-[#f2f4f8] bg-[#8591ad] w-[10rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300">
+            {isTeacher ? (
+              <div className="mt-4 p-6 border-t border-gray-200 ">
+                <h3 className="font-bold text-2xl text-[#545e79]">Mode</h3>
+                <div className="flex flex-row justify-start items-center mt-4">
+                  {/* <div className="text-[#f2f4f8] bg-[#8591ad] w-[10rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300">
                   <p className="text-center mt-3 font-semibold">Manual</p>
                 </div> */}
                 <div
@@ -362,7 +380,7 @@ export default function AssignmentPage() {
               />
               <button
                 onClick={() => {
-                  setSubmit(true);
+                  submitAssignment()
                 }}
                 className="justify-self-center w-[12rem] bg-[#aab2c6] text-center text-black px-4 py-2 rounded-lg cursor-pointer hover:bg-[#8591ad] text-xl transition duration-300 mt-4"
               >
