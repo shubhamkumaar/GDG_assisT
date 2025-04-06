@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { isSidebarState } from '../features/isSidebar/isSidebarSlice';
+import { useState } from 'react';
 
 export default function ResultReview() {
     const dispatch = useDispatch();
@@ -156,7 +157,7 @@ export default function ResultReview() {
                                         value={item.feedback} 
                                         onChange={(e) => updateQuestionField(item.questionId, 'feedback', e.target.value)}
                                         className="w-full text-[#8591ad] p-2 border border-gray-200 rounded"
-                                        rows="3"
+                                        rows={3}
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 </div>
@@ -217,7 +218,7 @@ export default function ResultReview() {
                                             value={item.strengths}
                                             onChange={(e) => updateQuestionField(item.questionId, 'strengths', e.target.value)}
                                             className="w-full text-[#8591ad] p-2 border border-gray-200 rounded"
-                                            rows="2"
+                                            rows={2}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     )}
@@ -252,7 +253,7 @@ export default function ResultReview() {
                                             value={item.areasOfImprovement}
                                             onChange={(e) => updateQuestionField(item.questionId, 'areasOfImprovement', e.target.value)}
                                             className="w-full text-[#8591ad] p-2 border border-gray-200 rounded"
-                                            rows="2"
+                                            rows={2}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     )}

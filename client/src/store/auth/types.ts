@@ -2,6 +2,7 @@ export interface User {
   // username: string;
   name: string;
   email: string;
+  is_teacher: boolean;
   // token: string;
 }
 

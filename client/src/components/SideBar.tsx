@@ -1,4 +1,4 @@
-import { RootState } from '../store/store';
+import { AppDispatch, RootState } from '../store/store';
 import { useDispatch, useSelector } from 'react-redux'
 import { getPageName } from '../features/workingPage/workingPageSlice'
 import { isJoiningClass } from '../features/joinPage/joinPageSlice'
@@ -14,7 +14,7 @@ export default function SideBar() {
     
 
     
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>()
 
 
   return (

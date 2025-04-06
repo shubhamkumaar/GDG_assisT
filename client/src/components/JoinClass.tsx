@@ -42,10 +42,10 @@ export default function JoinClass() {
         }
       );
       console.log(response.data);
-      if (response.status === 200) {
+      if (response.status === 201) {
         toast.success("Class joined successfully");
         dispatch(isJoiningClass(false));
-        navigate("/classroom", { state: data });
+        // navigate("/classroom", { state:data });
       }
     } catch (error) {
       toast.error("Failed to join class");
