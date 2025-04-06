@@ -171,7 +171,7 @@ export default function AssignmentPage() {
             assignment_id: assig_id,
         }
       });
-      
+
       setAssignmentDetails(response.data);
     };
     getAssignment();
