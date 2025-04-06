@@ -10,12 +10,13 @@ import { useLocation } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 export default function SetAssignment() {
-
   const token = getToken();
   const { state } = useLocation();
   const class_id = state?.id;
 
-  const isAddAssigementValue = useSelector((state: RootState) => state.addAssigement.isAddAssigementValue);
+  const isAddAssigementValue = useSelector(
+    (state: RootState) => state.addAssigement.isAddAssigementValue
+  );
   const dispatch = useDispatch();
 
   const [title, setTitle] = useState("");
@@ -31,9 +32,9 @@ export default function SetAssignment() {
       //toast
     }
   };
-  
+
   async function createAssignment() {
-    if(title==""&&description==""){
+    if (title == "" && description == "") {
       return;
     }
     try {

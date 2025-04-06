@@ -25,8 +25,9 @@ export default function SideBar() {
             <div className='bg-[#AAB2C6] w-[22rem] h-[10vh]'>
                 <div  className='flex flex-row items-center justify-between h-[5rem]'>
                     <div className='flex flex-row items-center justify-start h-[5rem] ml-[1.5rem]'>
-                        <div className='w-8 h-8 rounded-full bg-amber-50' ></div>
-                        <div className='text-4xl font-bold text-[#545E79] cursor-pointer ml-[0.8rem]'>Solver</div>
+                        {/* <div className='w-8 h-8 rounded-full bg-amber-50' ></div> */}
+                        {/* <div className='text-4xl font-bold text-[#545E79] cursor-pointer ml-[0.8rem]'>assisT</div> */}
+                    <img className="w-[60%] my-auto" src="/image-removebg-preview.png" alt="" />
                     </div>
                     {/* <img className='h-8 w-8 mr-[1rem] cursor-pointer'
                         src="../..//CloseSymbol.svg" alt="Close" /> */}

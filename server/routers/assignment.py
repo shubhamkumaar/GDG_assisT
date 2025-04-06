@@ -56,6 +56,7 @@ async def get_assignment(assignment_id:str,user:user_dependency,db: db_dependenc
             "id": submission.id,
             "submission_file": submission.submission_file,
             "submission_time": submission.submission_time,
+            "is_reviewed": submission.is_reviewed,
         }
     else:
         submission = None

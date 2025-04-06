@@ -19,6 +19,7 @@ type Assignment = {
     id: number;
     submission_file: string;
     submission_date: string;
+    is_reviewed: boolean;
   };
 };
 
@@ -51,9 +52,7 @@ export default function AssignmentPage() {
   const [teacherAssignment, setTeacherAssignment] = useState<
     teacherAssignment[]
   >([]);
-  console.log("teacherAssignment", teacherAssignment);
-  console.log("assignmentDetials", assignmentDetials);
-
+  
   const [resultValue, setResultValue] = useState(false);
   console.log("feedbackData", feedbackData);
 
@@ -78,7 +77,19 @@ export default function AssignmentPage() {
       setFile(null);
     }
   };
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
 
+    let hours = date.getHours();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+
+    return `${day}/${month}/${year}, ${hours}:${minutes} ${ampm}`;
+  };
   useEffect(() => {
     const getAssignment = async () => {
       const response = await axios.get(`${API_URL}/assignment`, {
@@ -92,6 +103,7 @@ export default function AssignmentPage() {
       });
       console.log("Assignment get", response.data);
       setAssignmentDetails([response.data]);
+      setIsResultOut(response.data.submission.is_reviewed);
     };
     getAssignment();
   }, []);
@@ -207,7 +219,6 @@ export default function AssignmentPage() {
   }
 
   async function uploadAnswerKey() {
-
     const formData = new FormData();
     if (!file) {
       toast.error("Please select a file to upload.");
@@ -286,7 +297,7 @@ export default function AssignmentPage() {
 
                 <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
                   <span className="font-semibold">Due Date:</span>{" "}
-                  {teacherAssignment[0].assignment_deadline}
+                  {formatDate(teacherAssignment[0].assignment_deadline)}
                 </p>
 
                 <p className="text-gray-700 text-lg ml-4 mt-4">
@@ -318,58 +329,69 @@ export default function AssignmentPage() {
               </div>
             )}
 
-            {assignmentDetials.length != 0 && (
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900 mt-3 text-center">
-                  {assignmentDetials[0].assignment_name}
-                </h2>
+            {assignmentDetials.length != 0 && !isTeacher && (
+              <>
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900 mt-3 text-center">
+                    {assignmentDetials[0].assignment_name}
+                  </h2>
 
-                <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
-                  <span className="font-semibold">Due Date:</span>{" "}
-                  {assignmentDetials[0].deadline}
-                </p>
+                  <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
+                    <span className="font-semibold">Due Date:</span>{" "}
+                    {formatDate(assignmentDetials[0].deadline)}
+                  </p>
 
-                <p className="text-gray-700 text-lg ml-4 mt-4">
-                  {assignmentDetials[0].assignment_description}
-                </p>
+                  <p className="text-gray-700 text-lg ml-4 mt-4">
+                    {assignmentDetials[0].assignment_description}
+                  </p>
 
-                {assignmentDetials[0].file && (
-                  <div>
-                    <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
-                      Files:
-                    </h3>
-                    <a
-                      href={assignmentDetials[0].file}
-                      target="_blank"
-                      className="flex items-center gap-3 border border-gray-300 rounded-md p-3 w-fit ml-6 mt-2 hover:shadow-md transition-all cursor-pointer"
-                    >
-                      <img src="/file_img.svg" alt="file" className="h-6 w-6" />
-                      <span className="text-gray-700 hover:text-blue-500 text-sm">
-                        {
-                          decodeURIComponent(
-                            assignmentDetials[0].file.split("/").pop() || ""
-                          ).split("_")[1]
-                        }
-                      </span>
-                    </a>
-                  </div>
-                )}
-              </div>
+                  {assignmentDetials[0].file && (
+                    <div>
+                      <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
+                        Files:
+                      </h3>
+                      <a
+                        href={assignmentDetials[0].file}
+                        target="_blank"
+                        className="flex items-center gap-3 border border-gray-300 rounded-md p-3 w-fit ml-6 mt-2 hover:shadow-md transition-all cursor-pointer"
+                      >
+                        <img
+                          src="/file_img.svg"
+                          alt="file"
+                          className="h-6 w-6"
+                        />
+                        <span className="text-gray-700 hover:text-blue-500 text-sm">
+                          {
+                            decodeURIComponent(
+                              assignmentDetials[0].file.split("/").pop() || ""
+                            ).split("_")[1]
+                          }
+                        </span>
+                      </a>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center ml-4 mt-4">
+                  <span className="font-bold text-lg text-gray-800">
+                    Status:
+                  </span>
+                  <span
+                    className={`ml-2 px-2 py-1 text-sm ${
+                      assignmentDetials[0].submission === null
+                        ? "text-red-500 bg-red-100"
+                        : "text-green-500 bg-green-100"
+                    } text-sm rounded-full`}
+                  >
+                    {assignmentDetials[0].submission === null
+                      ? "Pending"
+                      : "Completed"}
+                  </span>
+                </div>
+              </>
             )}
-            {!isTeacher && (
-              <div className="flex items-center ml-4 mt-4">
-                <span className="font-bold text-lg text-gray-800">Status:</span>
-                <span
-                  className={`ml-2 px-2 py-1 text-sm ${
-                    true
-                      ? "text-green-500 bg-green-100"
-                      : "text-red-500 bg-red-100"
-                  } text-sm rounded-full`}
-                >
-                  status
-                </span>
-              </div>
-            )}
+            {/* {!isTeacher && (
+              
+            )} */}
           </div>
 
           {isTeacher ? (
@@ -409,6 +431,11 @@ export default function AssignmentPage() {
                 </div>
               </div>
             </>
+          ) : assignmentDetials.length != 0 &&
+            assignmentDetials[0].submission !== null ? (
+            <h1 className="text-2xl ml-4 mt-8 text-green-600">
+              Already Submitted the Assignment
+            </h1>
           ) : (
             <div className="mt-4 p-6 border-t border-gray-200   ">
               <label className="block text-xl ml-4 font-bold text-gray-700 mb-2">
