@@ -7,6 +7,18 @@ import axios from "axios";
 import { getToken } from "../utils/jwt";
 import toast from "react-hot-toast";
 
+type Assignment = {
+  assignment_name: string;
+  assignment_description: string;
+  deadline: string;
+  assignment_id: number;
+  file: string;
+  submission: {
+    id: number;
+    submission_file: string;
+    submission_date: string;
+  }
+}
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -26,7 +38,7 @@ export default function AssignmentPage() {
     const [statusFeedback, setStatusFeedback] = useState([]);
     const [getFeedback, setGetFeedback] = useState([]);
     const [automationStarted, setAutomationStarted] = useState(true);
-    const [assignmentDetials, setAssignmentDetails] = useState([]);
+    const [assignmentDetials, setAssignmentDetails] = useState<Assignment>();
     console.log("statusFeedback", getFeedback);
     console.log("assignmentDetials", assignmentDetials);
 
@@ -142,7 +154,7 @@ export default function AssignmentPage() {
       if (file) {
         formData.append("file", file); 
       }
-        const response = await axios.post("http://localhost:8000/assignment/submit_assignment",
+        const response = await axios.post(`http://${API_URL}/assignment/submit_assignment`,
           formData, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -162,7 +174,7 @@ export default function AssignmentPage() {
 
   useEffect(() => {
     const getAssignment = async () => {
-      const response = await axios.get("http://localhost:8000/assignment", {
+      const response = await axios.get(`http://${API_URL}/assignment`, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
@@ -180,7 +192,7 @@ export default function AssignmentPage() {
 
   useEffect(() => {
     const getResult = async () => {
-      const response = await axios.get("http://localhost:8000/assignment/submissions", {
+      const response = await axios.get(`http://${API_URL}/assignment/submissions`, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
@@ -201,7 +213,7 @@ export default function AssignmentPage() {
     try {
       const formData = new FormData();
       formData.append("assignment_id", assig_id);
-      const response = await axios.post("http://localhost:8000/automated_feedback", formData, {
+      const response = await axios.post(`http://${API_URL}/automated_feedback`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
@@ -217,7 +229,7 @@ export default function AssignmentPage() {
 
   useEffect(() => {
     const getResult = async () => {
-      const response = await axios.get("http://localhost:8000/feedback_status", {
+      const response = await axios.get(`http://${API_URL}/feedback_status`, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
@@ -268,7 +280,7 @@ export default function AssignmentPage() {
   //  check result Api call
   async function CheckResult() {
     try {
-      const response = await axios.get("http://localhost:8000/feedback", {
+      const response = await axios.get(`http://${API_URL}/feedback`, {
           headers: {
               Authorization: `Bearer ${token}`,
               Accept: "application/json",
@@ -296,7 +308,7 @@ export default function AssignmentPage() {
     formData.append("file", file);
     try {
       const response = await axios.post(
-        "http://localhost:8000/assignment/submit_assignment",
+        `http://${API_URL}/assignment/submit_assignment`,
         formData,
         {
           headers: {

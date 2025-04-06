@@ -7,6 +7,7 @@ import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import { getToken } from "../utils/jwt";
 import SetAssignment from './SetAssigement';
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Assignment() {
 
@@ -27,7 +28,7 @@ export default function Assignment() {
     const fetchAnnouncment = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/class/assignments",
+          `http://${API_URL}/class/assignments`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

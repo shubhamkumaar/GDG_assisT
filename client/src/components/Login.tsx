@@ -21,6 +21,8 @@ import {
 // import { RootState } from "@reduxjs/toolkit/query";
 import { GoogleLogin } from "@react-oauth/google";
 import { Link } from "react-router-dom";
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 export default function LoginPage() {
   const [username, setEmail] = useState("");

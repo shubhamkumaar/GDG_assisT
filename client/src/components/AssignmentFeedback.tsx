@@ -7,6 +7,8 @@ import axios from 'axios';
 import { getToken } from '../utils/jwt';
 import { useLocation } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function AssignmentFeedback() {
     
     const [feedbackData, setFeedbackData] = useState({
@@ -24,7 +26,7 @@ export default function AssignmentFeedback() {
     useEffect(() => {
         const getResult = async () => {
             try {
-                const response = await axios.get("http://localhost:8000/feedback", {
+                const response = await axios.get(`http://${API_URL}/feedback`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         Accept: "application/json",

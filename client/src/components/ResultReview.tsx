@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { isSidebarState } from '../features/isSidebar/isSidebarSlice';
+import { useState } from 'react';
+import { useEffect } from 'react';
+import axios from 'axios';
+import { getToken } from '../utils/jwt';
+import { useLocation } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL;
 export default function ResultReview() {
     
     const [feedbackData, setFeedbackData] = useState({
@@ -26,7 +32,7 @@ export default function ResultReview() {
     useEffect(() => {
         const getResult = async () => {
             try {
-                const response = await axios.get("http://localhost:8000/feedback", {
+                const response = await axios.get(`http://${API_URL}/feedback`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         Accept: "application/json",
@@ -199,7 +205,6 @@ export default function ResultReview() {
                                             value={strength}
                                             onChange={(e) => updateArrayField(item.question_id, 'strengths', index, e.target.value)}
                                             className="w-full text-[#8591ad] p-2 border border-gray-200 rounded"
-                                            rows={2}
                                             onClick={(e) => e.stopPropagation()}
                                             onFocus={(e) => e.currentTarget.setSelectionRange(
                                                 e.currentTarget.value.length,

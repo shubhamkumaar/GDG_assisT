@@ -1,4 +1,5 @@
 import { useState } from 'react';
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function FeedbackCard(
     {questionId,rubricScore,finalScore,feedback,gradingAnalysis,strengths,areasOfImprovement,}){

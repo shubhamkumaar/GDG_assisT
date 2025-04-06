@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import { getToken } from "../utils/jwt";
+const API_URL = import.meta.env.VITE_API_URL;
 
 
 
@@ -37,7 +38,7 @@ export default function Student () {
     const fetchStudents = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/class/students",
+          `http://${API_URL}/class/students`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
