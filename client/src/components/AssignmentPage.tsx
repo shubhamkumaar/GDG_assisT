@@ -6,6 +6,7 @@ import { isSidebarState } from "../features/isSidebar/isSidebarSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
 import toast from "react-hot-toast";
+import { isAutomationState } from "../features/isAutomation/isAutomation";
 
 type Assignment = {
   assignment_name: string;
@@ -42,16 +43,15 @@ export default function AssignmentPage() {
     summary_bullets: [],
   });
 
+  const isAutomation = useSelector((state: RootState) => state.isAutomationPage.isAutomation);
+
   const [file, setFile] = useState(null);
   const [assignmentSubmits, setAssignmentSubmits] = useState([]);
   const [isResultOut, setIsResultOut] = useState(false);
   const [statusFeedback, setStatusFeedback] = useState([]);
   const [getFeedback, setGetFeedback] = useState([]);
-  const [automationStarted, setAutomationStarted] = useState(true);
   const [assignmentDetials, setAssignmentDetails] = useState<Assignment[]>([]);
   const [teacherAssignment, setTeacherAssignment] = useState([]);
-  console.log("teacherAssignment", teacherAssignment);
-  console.log("assignmentDetials", assignmentDetials);
 
   const [resultValue, setResultValue] = useState(false);
   console.log("feedbackData", feedbackData);
@@ -120,19 +120,19 @@ export default function AssignmentPage() {
     try {
       const formData = new FormData();
       formData.append("assignment_id", assig_id);
-      const response = await axios.post(
-        `${API_URL}/automated_feedback`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        }
-      );
+      // const response = await axios.post(
+      //   `${API_URL}/automated_feedback`,
+      //   formData,
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //       Accept: "application/json",
+      //     },
+      //   }
+      // );
 
-      console.log("Automated feedback", response.data);
-      setAutomationStarted(true);
+      // console.log("Automated feedback", response.data);
+      dispatch(isAutomationState(true))
     } catch (error) {
       console.error("Error submitting assignment:", error);
     }
@@ -393,7 +393,7 @@ export default function AssignmentPage() {
         {/* result part */}
         {!isResultOut ? (
           isTeacher ? (
-            automationStarted ? (
+            isAutomation ? (
               <div className="flex flex-col w-[32rem] h-[36rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                 <h1 className="my-4 font-semibold text-2xl text-center">
                   Automation Status
@@ -426,7 +426,7 @@ export default function AssignmentPage() {
                         state={{ id: student?.id }}
                       >
                         <button className="mt-3 py-2 text-sm text-gray-700 hover:scale-[1.05] rounded cursor-pointer transition-colors">
-                          View PDF
+                          View
                         </button>
                       </Link>
                     </div>

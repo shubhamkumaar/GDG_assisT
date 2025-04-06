@@ -11,6 +11,7 @@ import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { combineReducers } from "redux";
 import authReducer from "./auth/authSlice";
+import { isAutomationSlice } from "../features/isAutomation/isAutomation";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
   feedbackPage: feedbackPageSlice.reducer,
   addAssigement: addAssigementSlice.reducer,
   isAddStudent: isAddStudentSlice.reducer,
+  isAutomationPage: isAutomationSlice.reducer,
 });
 
 // ✅ Persist config
