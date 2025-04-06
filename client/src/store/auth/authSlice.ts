@@ -9,6 +9,7 @@ const initialState: AuthState = {
   error: null,
   token: token || null,
   isAuthenticated: !!token,
+  is_teacher: userData && userData !== "undefined" ? JSON.parse(userData).is_teacher : false,
 };
 
 export const loginUser = createAsyncThunk(

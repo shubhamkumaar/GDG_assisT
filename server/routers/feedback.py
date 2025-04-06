@@ -11,7 +11,7 @@ from functools import lru_cache
 import requests
 from server import config
 from server.utils.gemini import gemini_generation_config,safety_settings, wait_for_files_active, upload_to_gemini, gemini_generation_config_thinking
-from server.utils.google_cloud_storage import upload_file as upload_to_gcs
+from server.utils.google_cloud_storage import upload_file_sync as upload_to_gcs
 import server.db.models as models
 from server.routers.check_answer import ocr_response_mistral, save_images_ocr, ocr_response_gemini, ocr_answer_submission
 from sqlalchemy.orm import Session
@@ -801,6 +801,9 @@ def xml_to_json(xml:str)->str:
         if 'feedback' in result and 'detailed_feedback' in result['feedback'] and result['feedback']['detailed_feedback'] is not None:
             if 'question' in result['feedback']['detailed_feedback'] and result['feedback']['detailed_feedback']['question'] is not None:
                 questions = result['feedback']['detailed_feedback']['question']
+                # check if only a single question is present
+                if isinstance(questions, dict):
+                    questions = [questions]
                 result['feedback']['detailed_feedback'] = questions
                 
                 # Process each question
@@ -862,11 +865,12 @@ def process_ocr_for_db(job_id:str, request_id:str)->str:
             with open(image_path, "rb") as img_file:
                 image_data = img_file.read()
             # upload to gcs
-            gcs_url = upload_to_gcs(image_data, file)["file_url"]
+            gcs_url = upload_to_gcs(image_data, file)
+            gcs_url = gcs_url["file_url"]
             images.append((file, gcs_url))
     # replace the image path in the response with the gcs url
     for file, gcs_url in images:
-        response = response.replace(f"![{file}]", f"![{gcs_url}]")
+        response = response.replace(f"({file})", f"({gcs_url})")
     return response
 
 def give_feedback(db: db_dependency,submission_id: str):    
@@ -1110,7 +1114,7 @@ def queue_feedback(db: db_dependency, assignment_id: str, background_tasks: Back
         if submission.feedback is not None:
             continue
         # find the user who submitted the assignment
-        student = db.query(models.User).filter(models.Users.id == submission.student_id).first()
+        student = db.query(models.User).filter(models.User.id == submission.student_id).first()
         assignment_object = get_redis_cache(f"assignment_{assignment_id}")
         submission_obj = {
             "id": submission.id,

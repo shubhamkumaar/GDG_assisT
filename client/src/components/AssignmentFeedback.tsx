@@ -1,109 +1,185 @@
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { isSidebarState } from '../features/isSidebar/isSidebarSlice';
-import FeedbackCard from './FeedbackCard';
+import { useState } from 'react';
+import { useEffect } from 'react';
+import axios from 'axios';
+import { getToken } from '../utils/jwt';
+import { useLocation } from 'react-router-dom';
 
 export default function AssignmentFeedback() {
+    
+    const [feedbackData, setFeedbackData] = useState({
+        score: 0,
+        max_score: 0,
+        summary_bullets: [],
+        detailed_feedback: []
+    });
+    const [expandedItems, setExpandedItems] = useState([]);
 
-    const feedbackData = [
-        {
-          questionId: "Q1",
-          rubricScore: "10/10",
-          finalScore: "10/10",
-          feedback: "This is an excellent answer that demonstrates a strong understanding of strategic planning tools and their practical application in a business context...",
-          gradingAnalysis: [
-            { category: "Identification & Explanation of Tool 1 (SWOT)", score: "2/2" },
-            { category: "Justification of Tool 1 (SWOT)", score: "2/2" },
-            { category: "Identification & Explanation of Tool 2 (SMART)", score: "2/2" },
-            { category: "Justification of Tool 2 (SMART)", score: "2/2" },
-            { category: "Clarity & Relevance", score: "2/2" }
-          ],
-          strengths: [
-            "Clear and Detailed Explanations: You provided thorough explanations of both SWOT analysis and SMART goals...",
-            "Relevant and Contextual Application: Your application of both tools to TechGrowth Inc. is highly relevant and practical...",
-            "Strong Justification: You effectively justified the use of each tool by clearly explaining why they are valuable for TechGrowth..."
-          ],
-          areasOfImprovement: "No Areas for Improvement for this near-perfect answer."
-        },
-        {
-          questionId: "Q2",
-          rubricScore: "10/10",
-          finalScore: "10/10",
-          feedback: "Your answer is excellent and demonstrates a strong understanding of organizational structures and their implications for a company like TechGrowth...",
-          gradingAnalysis: [
-            { category: "Suggestion of Structure 1 (Matrix Structure)", score: "1/1" },
-            { category: "Pros of Structure 1", score: "2/2" },
-            { category: "Cons of Structure 1", score: "2/2" },
-            { category: "Suggestion of Structure 2 (Flat Structure)", score: "1/1" },
-            { category: "Pros of Structure 2", score: "2/2" },
-            { category: "Cons of Structure 2", score: "2/2" }
-          ],
-          strengths: [
-            "Improved Communication: Facilitates direct communication between members of different departments working on the same project.",
-            "Faster Decision-Making: Fewer layers mean information travels faster, and decisions can be made more quickly...",
-            "Your discussion of both pros and cons for each structure demonstrates a balanced and critical approach..."
-          ],
-          areasOfImprovement: [
-            "While your answer is comprehensive, consider delving deeper into the conditions under which each structure would be most effective for TechGrowth...",
-            "For Matrix Structure: Consider mentioning that it is particularly effective when TechGrowth has numerous complex projects...",
-            "For Flat Structure: Note that it works best in smaller to medium-sized organizations or in environments where tasks are relatively routine..."
-          ]
-        },
-        {
-          questionId: "Q3",
-          rubricScore: "10/10",
-          finalScore: "10/10",
-          feedback: "Your answer demonstrates a strong understanding of Herzberg's Two-Factor Theory and its practical application in addressing employee morale issues...",
-          gradingAnalysis: [
-            { category: "Theory Explanation", score: "2/2" },
-            { category: "Strategy 1 Recommendation & Link to Theory & Recognition/Career Path", score: "3/3" },
-            { category: "Strategy 2 Recommendation & Link to Theory & Recognition/Career Path", score: "3/3" },
-            { category: "Overall Clarity & Problem Addressing", score: "2/2" }
-          ],
-          strengths: [
-            "Herzberg's Two-Factor Theory provides a useful framework...",
-            "Strategy 1: Implement a Structured Recognition Program (Addresses Lack of Recognition)...",
-            "Strategy 2: Develop Clear Career Ladders and Development Plans (Addresses Unclear Career Growth Paths)..."
-          ],
-          areasOfImprovement: "While your answer is exceptionally strong, to push for even deeper analysis in future responses, consider briefly exploring potential challenges or nuances in implementing these strategies..."
-        }
-    ];
+    const token = getToken();
+    const { state } = useLocation();
+    const submission_id = state?.id;
+
+    useEffect(() => {
+        const getResult = async () => {
+            try {
+                const response = await axios.get("http://localhost:8000/feedback", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json",
+                    },
+                    params: {
+                        submission_id: submission_id,
+                    }
+                });
+                setFeedbackData(response.data);
+            } catch (error) {
+                console.error("Error fetching feedback:", error);
+            }
+        };
+        getResult();
+    }, [submission_id, token]);
+
+    const toggleExpand = (questionId) => {
+        setExpandedItems(prev => 
+            prev.includes(questionId) 
+                ? prev.filter(id => id !== questionId) 
+                : [...prev, questionId]
+        );
+    };
 
     const dispatch = useDispatch();
 
-  return (
-    <div  className="relative flex flex-col items-center bg-[#F2F4F8] w-full h-screen">
-
+    return (
+        <div className="relative flex flex-col items-center bg-[#F2F4F8] w-full h-screen">
+            
             <div className='absolute top-0 bg-[#ced3df] w-full h-[10vh]'>
-                <div  className='flex flex-row items-center justify-between h-[10vh]'>
+                <div className='flex flex-row items-center justify-between h-[10vh]'>
                     <Link
-                    onClick={() => dispatch(isSidebarState(false))}
+                        onClick={() => dispatch(isSidebarState(false))}
                         to="..">
                         <img className='h-8 w-8 ml-[1.5rem] cursor-pointer'
                             src="/Goback.svg" alt="Goback" />
                     </Link>
-                    <div className="flex flex-row z-10  " >
+                    <div className="flex flex-row z-10">
                         <div className='text-xl font-semibold text-[#545E79] cursor-pointer'>Subject Name</div>
                     </div>
-                    <div></div>
-
+                    <div >
+                    </div>
                 </div>
             </div>
 
-           <div className="absolute top-[14vh] h-[82vh] w-[150vh] overflow-auto space-y-6 hide-scrollbar">
-            {feedbackData.map((data, index) => (
-                <FeedbackCard
-                    key={index}
-                    questionId={data.questionId}
-                    rubricScore={data.rubricScore}
-                    finalScore={data.finalScore}
-                    feedback={data.feedback}
-                    gradingAnalysis={data.gradingAnalysis}
-                    strengths={data.strengths}
-                    areasOfImprovement={data.areasOfImprovement}
-                />
-            ))}
-      </div>
-    </div>
-  )
+            <div className="absolute top-[14vh] h-[82vh] overflow-auto space-y-6 hide-scrollbar w-full px-4">
+
+                {feedbackData.detailed_feedback.map((item) => {
+                    const isExpanded = expandedItems.includes(item.question_id);
+                    return (
+                        <div
+                            key={item.question_id}
+                            className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 mb-6 cursor-pointer ${isExpanded ? 'border-l-4 border-[#545e79]' : ''}`}
+                            onClick={() => toggleExpand(item.question_id)}
+                        >
+                            <div className="flex justify-between items-center p-6">
+                                <h3 className="text-lg font-bold text-[#8591ad]">Question {item.question_id}</h3>
+                                <div className="text-green-400 text-sm font-bold">
+                                    Score: {item.score_summary.final_score}
+                                </div>
+                            </div>
+
+                            <div
+                                className={`transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-[5000px] p-6' : 'max-h-0'}`}
+                            >
+                                <div className="mb-6">
+                                    <h4 className="text-md font-semibold text-[#545e79] mb-2">Overall Feedback</h4>
+                                    <p className="w-full text-[#8591ad] p-2 bg-gray-50 rounded">
+                                        {item.feedback}
+                                    </p>
+                                </div>
+
+                                <div className="mb-6">
+                                    <h4 className="text-md font-semibold text-[#545e79] mb-3">Grading Analysis</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {item.grading_analysis.map((analysis, index) => (
+                                            <div
+                                                key={index}
+                                                className="bg-gray-50 p-4 rounded shadow-sm"
+                                            >
+                                                <p className="font-medium text-[#8591ad]">
+                                                    {analysis.category}
+                                                </p>
+                                                <p className="text-green-400 font-bold">
+                                                    {analysis.score}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mb-6">
+                                    <h4 className="text-md font-semibold text-[#545e79] mb-2">Strengths</h4>
+                                    <div className="space-y-2">
+                                        {item.strengths.map((strength, index) => (
+                                            <p 
+                                                key={index}
+                                                className="w-full text-[#8591ad] p-2 bg-gray-50 rounded"
+                                            >
+                                                • {strength}
+                                            </p>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mb-6">
+                                    <h4 className="text-md font-semibold text-[#545e79] mb-2">Areas for Improvement</h4>
+                                    <div className="space-y-2">
+                                        {Array.isArray(item.areas_of_improvement) ? (
+                                            <>
+                                            {item.areas_of_improvement.map((area, index) => (
+                                                <p
+                                                    key={index}
+                                                    className="w-full text-[#8591ad] p-2 bg-gray-50 rounded"
+                                                >
+                                                    • {area}
+                                                </p>
+                                            ))}
+                                            </>
+                                        ) : (
+                                        <p className="w-full text-[#8591ad] p-2 bg-gray-50 rounded">
+                                            {item.areas_of_improvement}
+                                        </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                                    <span className="text-sm font-semibold text-[#8591ad]">
+                                        Rubric Score: {item.score_summary.rubric_score}
+                                    </span>
+                                    <span className="text-sm font-bold text-[#8591ad]">
+                                        Final Score: {item.score_summary.final_score}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h3 className="text-lg font-bold text-[#545e79] mb-4">Summary Feedback</h3>
+                    <div className="space-y-3">
+                        {feedbackData.summary_bullets.map((bullet, index) => (
+                            <div key={index} className="flex items-start">
+                                <span className="mr-2">•</span>
+                                <p className="w-full text-[#8591ad] p-1">
+                                    {bullet}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    );
 }

@@ -59,7 +59,7 @@ export default function SetAssignment() {
           },
         }
       );
-      if (response.status === 200) {
+      if (response.status === 201) {
         toast.success("Assignment created successfully");
         setFile(null);
         setTitle("");
