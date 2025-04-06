@@ -26,7 +26,7 @@ export default function AssignmentFeedback() {
     useEffect(() => {
         const getResult = async () => {
             try {
-                const response = await axios.get(`https://${API_URL}/feedback`, {
+                const response = await axios.get(`${API_URL}/feedback`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         Accept: "application/json",
