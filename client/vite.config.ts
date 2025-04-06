@@ -8,4 +8,12 @@ export default defineConfig({
     tailwindcss(),
     react()
   ],
+  build: {
+    rollupOptions: {
+      onwarn(warning, defaultHandler) {
+        if (warning.code === 'TS2503') return; // Ignore "Cannot find namespace" errors
+        defaultHandler(warning);
+      },
+    },
+  },
 })

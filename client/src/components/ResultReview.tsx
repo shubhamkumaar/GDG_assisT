@@ -6,7 +6,8 @@ import { useEffect } from 'react';
 import axios from 'axios';
 import { getToken } from '../utils/jwt';
 import { useLocation } from 'react-router-dom';
-    import ReactMarkdown from 'react-markdown'
+import Markdown from "markdown-to-jsx"
+    // import ReactMarkdown from 'react-markdown'
 
 const API_URL = import.meta.env.VITE_API_URL;
 export default function ResultReview() {
@@ -177,10 +178,10 @@ export default function ResultReview() {
             <div className="absolute top-[14vh] h-[82vh] flex overflow-auto space-y-6 hide-scrollbar w-full px-4">
 
                 <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-[36rem] h-[48rem] overflow-auto hide-scrollbar mr-8">
-                    <h2 className='text-2xl font-bold' >OCR</h2>
-                    <ReactMarkdown>
+                    <h2 className='text-2xl font-bold'>OCR</h2>
+                    <Markdown>
                         {ocr}
-                    </ReactMarkdown>
+                    </Markdown>
                 </div>
 
                 <div className='w-[84rem]'>
