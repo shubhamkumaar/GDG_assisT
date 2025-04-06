@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import axios from 'axios';
 import { getToken } from '../utils/jwt';
 import { useLocation } from 'react-router-dom';
+    import ReactMarkdown from 'react-markdown'
 
 const API_URL = import.meta.env.VITE_API_URL;
 export default function ResultReview() {
@@ -17,9 +18,31 @@ export default function ResultReview() {
         detailed_feedback: []
     });
 
+    const [ocr, setOcr] = useState()
+
+    // send feedback data as a str in the body
     const updateData = async () => {
+        const token = getToken();
+        const submission_id = state?.id;
+        const formData = new URLSearchParams({
+            feedback: JSON.stringify(feedbackData),
+        });
+        try {
+            const response = await axios.post(`${API_URL}/review_feedback`,formData, {
+                params: {
+                    submission_id: submission_id,
+                },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            });
+            console.log("Response data:", response.data);
+        } catch (error) {
+            console.error("Error updating feedback:", error);
+        }
        console.log("feedback here",feedbackData);
-       
     };
     
 
@@ -28,6 +51,31 @@ export default function ResultReview() {
     const token = getToken();
     const { state } = useLocation();
     const submission_id = state?.id;
+
+
+
+    useEffect(() => {
+        const getOcr = async () => {
+            try {
+                const response = await axios.get(`${API_URL}/assignment/submission_ocr`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json",
+                    },
+                    params: {
+                        submission_id: submission_id,
+                    }
+                });
+                console.log("ocr :", response.data);
+                setOcr(response.data.ocr_text)
+                // setFeedbackData(response.data);
+            } catch (error) {
+                console.error("Error fetching feedback:", error);
+            }
+        };
+        getOcr();
+    }, [submission_id]);
+
 
     useEffect(() => {
         const getResult = async () => {
@@ -41,13 +89,14 @@ export default function ResultReview() {
                         submission_id: submission_id,
                     }
                 });
+                console.log("Response data:", response.data);
                 setFeedbackData(response.data);
             } catch (error) {
                 console.error("Error fetching feedback:", error);
             }
         };
         getResult();
-    }, [submission_id, token]);
+    }, [submission_id]);
 
     const toggleExpand = (questionId) => {
         setExpandedItems(prev => 
@@ -125,8 +174,17 @@ export default function ResultReview() {
                 </div>
             </div>
 
-            <div className="absolute top-[14vh] h-[82vh] overflow-auto space-y-6 hide-scrollbar w-full px-4">
-                    
+            <div className="absolute top-[14vh] h-[82vh] flex overflow-auto space-y-6 hide-scrollbar w-full px-4">
+
+                <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-[36rem] h-[48rem] overflow-auto hide-scrollbar mr-8">
+                    <h2 className='text-2xl font-bold' >OCR</h2>
+                    <ReactMarkdown>
+                        {ocr}
+                    </ReactMarkdown>
+                </div>
+
+                <div className='w-[84rem]'>
+
                 {feedbackData.detailed_feedback.map((item) => {
                     const isExpanded = expandedItems.includes(item.question_id);
                     return (
@@ -283,6 +341,7 @@ export default function ResultReview() {
                             </div>
                         ))}
                     </div>
+                </div>
                 </div>
 
             </div>

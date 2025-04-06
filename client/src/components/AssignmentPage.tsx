@@ -120,18 +120,18 @@ export default function AssignmentPage() {
     try {
       const formData = new FormData();
       formData.append("assignment_id", assig_id);
-      // const response = await axios.post(
-      //   `${API_URL}/automated_feedback`,
-      //   formData,
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //       Accept: "application/json",
-      //     },
-      //   }
-      // );
+      const response = await axios.post(
+        `${API_URL}/automated_feedback`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
 
-      // console.log("Automated feedback", response.data);
+      console.log("Automated feedback", response.data);
       dispatch(isAutomationState(true))
     } catch (error) {
       console.error("Error submitting assignment:", error);
@@ -425,9 +425,13 @@ export default function AssignmentPage() {
                         to="result-review"
                         state={{ id: student?.id }}
                       >
-                        <button className="mt-3 py-2 text-sm text-gray-700 hover:scale-[1.05] rounded cursor-pointer transition-colors">
-                          View
-                        </button>
+                          <button
+                            key={student.id}
+                            {...(student?.status !== "completed" ? { disabled: true } : {})}
+                            className="mt-3 py-2 text-sm text-gray-700 hover:scale-[1.05] rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            View
+                          </button>
                       </Link>
                     </div>
                   ))}

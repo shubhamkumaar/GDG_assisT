@@ -1221,7 +1221,7 @@ def get_feedback(db: db_dependency, user:user_dependency, submission_id: str):
     return feedback
 
 @router.post("/review_feedback")
-def review_feedback(db: db_dependency, user:user_dependency, submission_id: str, feedback: str):
+def review_feedback(db: db_dependency, user:user_dependency, submission_id: str, feedback: str = Form(...)):
     """ Review and approve feedback with or without any changes to it.
     """
     # checking if the user is a teacher

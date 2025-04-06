@@ -225,3 +225,25 @@ async def get_submissions(assignment_id:int,user: user_dependency, db: db_depend
         }
         for submission in submissions
     ]}
+
+@router.get("/submission_ocr")
+async def get_submission_ocr(submission_id:str,user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=404, detail="Authentication required")
+    
+    if not user.is_teacher:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    submission = db.query(models.Submissions).filter(models.Submissions.id == submission_id).first()
+    if submission is None:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    
+    assignment = db.query(models.Assignments).filter(models.Assignments.id == submission.assignment_id).first()
+    if assignment is None:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    teacher_class = db.query(models.Classes).filter(models.Classes.id == assignment.class_id).first()
+    if teacher_class.teacher_id != user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    return {"ocr_text": submission.ocr_text}
