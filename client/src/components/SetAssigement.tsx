@@ -33,6 +33,9 @@ export default function SetAssignment() {
   };
   
   async function createAssignment() {
+    if(title==""&&description==""){
+      return;
+    }
     try {
       const formData = new FormData();
       if (!title || !description) {

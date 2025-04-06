@@ -36,6 +36,15 @@ const API_URL = import.meta.env.VITE_API_URL;
 //   },
 // };
 
+type teacherAssignment = {
+  answer_key: string;
+  assignment_deadline: string;
+  assignment_description: string;
+  assignment_file: string;
+  assignment_name: string;
+  class_id: string;
+  id: number;
+};
 export default function AssignmentPage() {
   const [feedbackData, setFeedbackData] = useState({
     score: 0,
@@ -51,7 +60,11 @@ export default function AssignmentPage() {
   const [statusFeedback, setStatusFeedback] = useState([]);
   const [getFeedback, setGetFeedback] = useState([]);
   const [assignmentDetials, setAssignmentDetails] = useState<Assignment[]>([]);
-  const [teacherAssignment, setTeacherAssignment] = useState([]);
+  const [teacherAssignment, setTeacherAssignment] = useState<
+    teacherAssignment[]
+  >([]);
+  console.log("teacherAssignment", teacherAssignment);
+  console.log("assignmentDetials", assignmentDetials);
 
   const [resultValue, setResultValue] = useState(false);
   console.log("feedbackData", feedbackData);
@@ -65,7 +78,6 @@ export default function AssignmentPage() {
   );
   const dispatch = useDispatch();
 
-
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -78,7 +90,6 @@ export default function AssignmentPage() {
       setFile(null);
     }
   };
-
 
   useEffect(() => {
     const getAssignment = async () => {
@@ -110,7 +121,7 @@ export default function AssignmentPage() {
         },
       });
       console.log("here", response.data.assignment);
-      setTeacherAssignment(response.data.assignment);
+      setTeacherAssignment([response.data.assignment]);
       setAssignmentSubmits(response.data.submission);
     };
     getResult();
@@ -225,7 +236,7 @@ export default function AssignmentPage() {
             Authorization: `Bearer ${token}`,
           },
           params: {
-            assignment_id: assig_id,  
+            assignment_id: assig_id,
           },
         }
       );
@@ -238,6 +249,10 @@ export default function AssignmentPage() {
       toast.error("Error uploading file. Please try again.");
       console.error("Error uploading file:", error);
     }
+  }
+
+  function uploadAnswerKey() {
+    toast("Upload answer")
   }
 
   return (
@@ -276,97 +291,133 @@ export default function AssignmentPage() {
       <div className="flex flex-row items-center justify-center h-full ">
         {/* assignment part */}
 
-         <div className="w-[48rem] h-[38rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+        <div className="w-[48rem] h-[38rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <div className="p-6">
-            {isTeacher && <div>
-          <h2 className="text-3xl font-bold text-gray-900 mt-3 text-center">
-              {teacherAssignment.assignment_name}
-            </h2>
-
-            <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
-              <span className="font-semibold">Due Date:</span>{" "}
-              {teacherAssignment.assignment_deadline}
-            </p>
-
-            <p className="text-gray-700 text-lg ml-4 mt-4">
-              {teacherAssignment.assignment_description}
-            </p>
-
-            <div>
-              <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
-                Files:
-              </h3>
-              <p className="text-gray-700 ml-6">{teacherAssignment.assignment_file}</p>
-            </div>
-            </div>}
-
-          {assignmentDetials.length != 0 && <div>
-          <h2 className="text-3xl font-bold text-gray-900 mt-3 text-center">
-              {assignmentDetials[0].assignment_name}
-            </h2>
-
-              <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
-                <span className="font-semibold">Due Date:</span>{" "}
-                {assignmentDetials[0].deadline}
-              </p>
-
-              <p className="text-gray-700 text-lg ml-4 mt-4">
-                {assignmentDetials[0].assignment_description}
-              </p>
-
+            {isTeacher && teacherAssignment.length != 0 && (
               <div>
-                <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
-                  Files:
-                </h3>
+                <h2 className="text-3xl font-bold text-gray-900 mt-3 text-center">
+                  {teacherAssignment[0].assignment_name}
+                </h2>
 
-                <a
-                  href={assignmentDetials[0].file}
-                  target="_blank"
-                  className="text-gray-700 ml-6 mt-2 hover:text-blue-500"
-                >
-                  {
-                    decodeURIComponent(
-                      assignmentDetials[0].file.split("/").pop() || ""
-                    ).split("_")[1]
-                  }
-                  {/* {.split("/").pop().split("_")[1].replace("%20", " ")} */}
-                </a>
-                {/* <p className="text-gray-700 ml-6">{assignmentDetials[0].file}</p> */}
-              </div>
-              </div>}
-              {!isTeacher && (
-                <div className="flex items-center ml-4 mt-4">
-                  <span className="font-bold text-lg text-gray-800">
-                    Status:
-                  </span>
-                  <span
-                    className={`ml-2 px-2 py-1 text-sm ${
-                      true
-                        ? "text-green-500 bg-green-100"
-                        : "text-red-500 bg-red-100"
-                    } text-sm rounded-full`}
+                <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
+                  <span className="font-semibold">Due Date:</span>{" "}
+                  {teacherAssignment[0].assignment_deadline}
+                </p>
+
+                <p className="text-gray-700 text-lg ml-4 mt-4">
+                  {teacherAssignment[0].assignment_description}
+                </p>
+
+                <div>
+                  <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
+                    Files:
+                  </h3>
+                  <a
+                    href={teacherAssignment[0].assignment_file}
+                    target="_blank"
+                    className="flex items-center gap-3 border border-gray-300 rounded-md p-3 w-fit ml-6 mt-2 hover:shadow-md transition-all cursor-pointer"
                   >
-                    status
-                  </span>
+                    <img src="/file_img.svg" alt="file" className="h-6 w-6" />
+                    <span className="text-gray-700 hover:text-blue-500 text-sm">
+                      {
+                        decodeURIComponent(
+                          teacherAssignment[0].assignment_file
+                            .split("/")
+                            .pop() || ""
+                        ).split("_")[1]
+                      }
+                    </span>
+                  </a>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {isTeacher ? (
+            {assignmentDetials.length != 0 && (
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mt-3 text-center">
+                  {assignmentDetials[0].assignment_name}
+                </h2>
+
+                <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
+                  <span className="font-semibold">Due Date:</span>{" "}
+                  {assignmentDetials[0].deadline}
+                </p>
+
+                <p className="text-gray-700 text-lg ml-4 mt-4">
+                  {assignmentDetials[0].assignment_description}
+                </p>
+
+                <div>
+                  <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
+                    Files:
+                  </h3>
+                  <a
+                    href={assignmentDetials[0].file}
+                    target="_blank"
+                    className="flex items-center gap-3 border border-gray-300 rounded-md p-3 w-fit ml-6 mt-2 hover:shadow-md transition-all cursor-pointer"
+                  >
+                    <img src="/file_img.svg" alt="file" className="h-6 w-6" />
+                    <span className="text-gray-700 hover:text-blue-500 text-sm">
+                      {
+                        decodeURIComponent(
+                          assignmentDetials[0].file.split("/").pop() || ""
+                        ).split("_")[1]
+                      }
+                    </span>
+                  </a>
+                </div>
+              </div>
+            )}
+            {!isTeacher && (
+              <div className="flex items-center ml-4 mt-4">
+                <span className="font-bold text-lg text-gray-800">Status:</span>
+                <span
+                  className={`ml-2 px-2 py-1 text-sm ${
+                    true
+                      ? "text-green-500 bg-green-100"
+                      : "text-red-500 bg-red-100"
+                  } text-sm rounded-full`}
+                >
+                  status
+                </span>
+              </div>
+            )}
+          </div>
+
+          {isTeacher ? (
+            <>
+              <div className="mt-4 p-6 border-t border-gray-200 ">
+                <div className="flex flex-row justify-start items-center mb-4">
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    accept="application/pdf"
+                    className="block ml-4 mt-6 w-full text-lg text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  <div onClick={()=>{
+                    uploadAnswerKey()
+                  }} className="text-[#f2f4f8] bg-[#8591ad] w-[20rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300">
+                    <p className="text-center mt-3 font-semibold">
+                      Upload Answer Key
+                    </p>
+                  </div>
+                </div>
+              </div>
               <div className="mt-4 p-6 border-t border-gray-200 ">
                 <h3 className="font-bold text-2xl text-[#545e79]">Mode</h3>
                 <div className="flex flex-row justify-start items-center mt-4">
-                  {/* <div className="text-[#f2f4f8] bg-[#8591ad] w-[10rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300">
-                  <p className="text-center mt-3 font-semibold">Manual</p>
-                </div> */}
-                <div
-                  onClick={AutomaticChecker}
-                  className="text-center  text-[#f2f4f8] bg-[#8591ad] w-[10rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300 ml-4"
-                >
-                  <p className="text-center mt-3 font-semibold"> Automatic </p>
+                  <div
+                    onClick={AutomaticChecker}
+                    className="text-center  text-[#f2f4f8] bg-[#8591ad] w-[10rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300 ml-4"
+                  >
+                    <p className="text-center mt-3 font-semibold">
+                      {" "}
+                      Automatic{" "}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           ) : (
             <div className="mt-4 p-6 border-t border-gray-200   ">
               <label className="block text-xl ml-4 font-bold text-gray-700 mb-2">
@@ -380,7 +431,7 @@ export default function AssignmentPage() {
               />
               <button
                 onClick={() => {
-                  submitAssignment()
+                  submitAssignment();
                 }}
                 className="justify-self-center w-[12rem] bg-[#aab2c6] text-center text-black px-4 py-2 rounded-lg cursor-pointer hover:bg-[#8591ad] text-xl transition duration-300 mt-4"
               >
@@ -400,37 +451,38 @@ export default function AssignmentPage() {
                 </h1>
 
                 <div className="flex flex-col justify-center items-center gap-2 overflow-auto w-full hide-scrollbar h-[32rem]">
-                  {statusFeedback && statusFeedback.map((student) => (
-                    <div
-                      key={student?.id}
-                      className="bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors w-[45vh] flex flex-row justify-around items-start p-4 shadow-md hover:shadow-lg"
-                    >
-                      <div className="flex flex-col justify-center items-center">
-                        <h3 className="text-lg font-medium text-gray-800">
-                          {student?.student_name}
-                        </h3>
-                        <span
-                          className={`text-sm px-2 py-1 rounded ${
-                            student?.status === "completed"
-                              ? "bg-green-50 text-green-700"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {student?.status}
-                        </span>
-                      </div>
-
-                      <Link
-                        onClick={() => dispatch(isSidebarState(true))}
-                        to="result-review"
-                        state={{ id: student?.id }}
+                  {statusFeedback &&
+                    statusFeedback.map((student) => (
+                      <div
+                        key={student?.id}
+                        className="bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors w-[45vh] flex flex-row justify-around items-start p-4 shadow-md hover:shadow-lg"
                       >
-                        <button className="mt-3 py-2 text-sm text-gray-700 hover:scale-[1.05] rounded cursor-pointer transition-colors">
-                          View
-                        </button>
-                      </Link>
-                    </div>
-                  ))}
+                        <div className="flex flex-col justify-center items-center">
+                          <h3 className="text-lg font-medium text-gray-800">
+                            {student?.student_name}
+                          </h3>
+                          <span
+                            className={`text-sm px-2 py-1 rounded ${
+                              student?.status === "completed"
+                                ? "bg-green-50 text-green-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {student?.status}
+                          </span>
+                        </div>
+
+                        <Link
+                          onClick={() => dispatch(isSidebarState(true))}
+                          to="result-review"
+                          state={{ id: student?.id }}
+                        >
+                          <button className="mt-3 py-2 text-sm text-gray-700 hover:scale-[1.05] rounded cursor-pointer transition-colors">
+                            View PDF
+                          </button>
+                        </Link>
+                      </div>
+                    ))}
                 </div>
               </div>
             ) : (
