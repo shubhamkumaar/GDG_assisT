@@ -55,6 +55,7 @@ class Submissions(Base):
     marks = Column(Numeric(5,2))
     feedback = Column(String)
     ocr_text = Column(String)
+    is_reviewed = Column(Boolean, default=False)
 
 class Class_Students(Base):
     __tablename__ = 'class_students'

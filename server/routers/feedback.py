@@ -1199,6 +1199,9 @@ def get_feedback(db: db_dependency, user:user_dependency, submission_id: str):
             return {"error": "Submission not found"}
         if submission.student_id != user.id:
             return {"error": "You are not authorized to perform this action"}
+        # check if the feedback has been reviewed
+        if submission.is_reviewed == False:
+            return {"error": "Feedback has not been reviewed yet"}
     elif user.is_teacher == True:
         # checking if the user is a teacher for the class which the assignment belongs to
         submission = db.query(models.Submissions).filter(models.Submissions.id == submission_id).first()
@@ -1216,3 +1219,37 @@ def get_feedback(db: db_dependency, user:user_dependency, submission_id: str):
     
     feedback = json.loads(submission.feedback)
     return feedback
+
+@router.post("/review_feedback")
+def review_feedback(db: db_dependency, user:user_dependency, submission_id: str, feedback: str):
+    """ Review and approve feedback with or without any changes to it.
+    """
+    # checking if the user is a teacher
+    if user.is_teacher == False:
+        return {"error": "You are not authorized to perform this action"}
+    elif user.is_teacher == True:
+        # checking if the user is a teacher for the class which the assignment belongs to
+        submission = db.query(models.Submissions).filter(models.Submissions.id == submission_id).first()
+        if submission is None:
+            return {"error": "Submission not found"}
+        assignment = db.query(models.Assignments).filter(models.Assignments.id == submission.assignment_id).first()
+        class_id = assignment.class_id
+        class_assigment = db.query(models.Classes).filter(models.Classes.id == class_id).first()
+        if class_assigment.teacher_id != user.id:
+            return {"error": "You are not authorized to perform this action"}
+
+    # checking if the feedback has been generated
+    if submission.feedback is None:
+        return {"error": "Feedback has not been generated yet"}
+    
+    # check if the feedback is valid json
+    try:
+        json.loads(feedback)
+    except json.JSONDecodeError:
+        return {"error": "Feedback is not a valid JSON"}
+    
+    # updating the feedback in the database
+    submission.feedback = feedback
+    submission.is_reviewed = True
+    db.commit()
+    return {"message": "Feedback updated successfully"}
