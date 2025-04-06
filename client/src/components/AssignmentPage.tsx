@@ -34,6 +34,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 //     submission_date: "",
 //   },
 // };
+
 export default function AssignmentPage() {
   const [feedbackData, setFeedbackData] = useState({
     score: 0,
@@ -49,7 +50,8 @@ export default function AssignmentPage() {
   const [getFeedback, setGetFeedback] = useState([]);
   const [automationStarted, setAutomationStarted] = useState(true);
   const [assignmentDetials, setAssignmentDetails] = useState<Assignment[]>([])
-  console.log("statusFeedback", getFeedback);
+  const [teacherAssignment, setTeacherAssignment] = useState([]);
+  console.log("teacherAssignment", teacherAssignment);
   console.log("assignmentDetials", assignmentDetials);
   
   const [resultValue, setResultValue] = useState(false);
@@ -64,47 +66,6 @@ export default function AssignmentPage() {
   );
   const dispatch = useDispatch();
 
-  const result = {
-    score: 78.0,
-    summary_bullets: [
-      "Strong conceptual understanding but needs more detailed examples",
-      "Consistent formatting errors in citations",
-      "Excellent time management evident in completion rate",
-    ],
-    detailed_feedback: {
-      strengths: [
-        "Demonstrated mastery of quadratic equations in Q3 and Q7",
-        "Clear thesis statement in essay introduction",
-        "Consistent use of technical terminology",
-      ],
-      areas_of_improvement: [
-        "Show working steps for mathematical proofs (lost 12% on incomplete proofs)",
-        "Include at least 3 peer-reviewed sources per argument",
-        "Use APA 7th edition formatting for all citations",
-      ],
-      question_details: [
-        {
-          question_id: "Q1",
-          score: 4.5,
-          rank: "Good",
-          basis: "Rubric Section II-A: Proper method but rounding errors",
-          feedback:
-            "Accurate setup but final answer missing units,Accurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing unitsAccurate setup but final answer missing units",
-        },
-        {
-          question_id: "Q5",
-          score: 2.0,
-          rank: "Needs Work",
-          basis: "Rubric Section III-B: Missing required diagram",
-          feedback: "Theoretical answer correct but visual proof absent",
-        },
-      ],
-      rubric_summary:
-        "Grading criteria: 40% accuracy, 30% methodology, 20% presentation, 10% timeliness. Level descriptors: Excellent (9-10 pts): Exceeds requirements; Good (7-8.9 pts): Meets all requirements; Needs Work (<7 pts): Missing key elements.",
-      actual_summary:
-        "Your submission shows strong technical knowledge but lacks attention to formatting requirements. While your calculations are mostly correct (scoring 92% on accuracy), presentation errors cost 15% of total marks. Focus on citation formatting and showing complete working steps to reach A-grade level.",
-    },
-  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -118,63 +79,6 @@ export default function AssignmentPage() {
     }
   };
 
-  // const value = [
-  //   {
-  //     id: 1,
-  //     student_name: "Student 1",
-  //     status: "completed",
-  //   },
-  //   {
-  //     id: 2,
-  //     student_name: "Student 2",
-  //     status: "completed",
-  //   },
-  //   {
-  //     id: 3,
-  //     student_name: "Student 3",
-  //     status: "completed",
-  //   },
-  //   {
-  //     id: 4,
-  //     student_name: "Student 4",
-  //     status: "completed",
-  //   },
-  //   {
-  //     id: 5,
-  //     student_name: "Student 5",
-  //     status: "completed",
-  //   },
-  //   // {
-  //   //   id: 6,
-  //   //   name: "Student 6",
-  //   //   status: "completed",
-  //   // }
-  // ]
-
-  // useEffect(() => {
-  //   const fetchAssignment = async () => {
-  //     const formData = new FormData();
-  //     console.log("file", file);
-
-  //     if (file) {
-  //       formData.append("file", file);
-  //     }
-  //       const response = await axios.post(`${API_URL}/assignment/submit_assignment`,
-  //         formData, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           "message-Type": "multipart/form-data",
-  //           Accept: "application/json",
-  //         },
-  //         params:{
-  //             assignment_id: assig_id,
-  //         }
-  //       });
-  //       console.log("Assignment get",response.data);
-  //       setFile(null);
-  //     }
-  //     fetchAssignment();
-  //   }, [file]);
 
   useEffect(() => {
     const getAssignment = async () => {
@@ -205,7 +109,8 @@ export default function AssignmentPage() {
           assignment_id: assig_id,
         },
       });
-      console.log("here", response.data.submission);
+      console.log("here", response.data.assignment);
+      setTeacherAssignment(response.data.assignment);
       setAssignmentSubmits(response.data.submission);
     };
     getResult();
@@ -367,9 +272,32 @@ export default function AssignmentPage() {
       <div className="flex flex-row items-center justify-center h-full ">
         {/* assignment part */}
 
-        {assignmentDetials.length != 0 &&<div className="w-[48rem] h-[38rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+         <div className="w-[48rem] h-[38rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <div className="p-6">
-            <h2 className="text-3xl font-bold text-gray-900 mt-3 text-center">
+            {isTeacher && <div>
+          <h2 className="text-3xl font-bold text-gray-900 mt-3 text-center">
+              {teacherAssignment.assignment_name}
+            </h2>
+
+            <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
+              <span className="font-semibold">Due Date:</span>{" "}
+              {teacherAssignment.assignment_deadline}
+            </p>
+
+            <p className="text-gray-700 text-lg ml-4 mt-4">
+              {teacherAssignment.assignment_description}
+            </p>
+
+            <div>
+              <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
+                Files:
+              </h3>
+              <p className="text-gray-700 ml-6">{teacherAssignment.assignment_file}</p>
+            </div>
+            </div>}
+
+          {assignmentDetials.length != 0 && <div>
+          <h2 className="text-3xl font-bold text-gray-900 mt-3 text-center">
               {assignmentDetials[0].assignment_name}
             </h2>
 
@@ -388,6 +316,7 @@ export default function AssignmentPage() {
               </h3>
               <p className="text-gray-700 ml-6">{assignmentDetials[0].file}</p>
             </div>
+            </div>}
 
             {!isTeacher && (
               <div className="flex items-center ml-4 mt-4">
@@ -441,7 +370,7 @@ export default function AssignmentPage() {
               </button>
             </div>
           )}
-        </div>}
+        </div>
 
         {/* result part */}
         {!isResultOut ? (
@@ -453,7 +382,7 @@ export default function AssignmentPage() {
                 </h1>
 
                 <div className="flex flex-col justify-center items-center gap-2 overflow-auto w-full hide-scrollbar h-[32rem]">
-                  {statusFeedback.map((student) => (
+                  {statusFeedback && statusFeedback.map((student) => (
                     <div
                       key={student?.id}
                       className="bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors w-[45vh] flex flex-row justify-around items-start p-4 shadow-md hover:shadow-lg"
