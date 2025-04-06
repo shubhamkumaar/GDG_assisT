@@ -66,7 +66,9 @@ export const googleLogin = createAsyncThunk(
   async (googleToken: string, { rejectWithValue }) => {
     try {
       const response = await api.get("/auth/google/login", {
-        token: googleToken,
+        headers: {
+          Authorization: `Bearer ${googleToken}`,
+        }
       });
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.access_token);
