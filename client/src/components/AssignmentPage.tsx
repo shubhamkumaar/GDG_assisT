@@ -7,6 +7,7 @@ import axios from "axios";
 import { getToken } from "../utils/jwt";
 import toast from "react-hot-toast";
 import { isAutomationState } from "../features/isAutomation/isAutomation";
+const API_URL = import.meta.env.VITE_API_URL;
 
 type Assignment = {
   assignment_name: string;
@@ -20,21 +21,6 @@ type Assignment = {
     submission_date: string;
   };
 };
-
-const API_URL = import.meta.env.VITE_API_URL;
-
-// let assignmentDetials: Assignment = {
-//   assignment_name: "",
-//   assignment_description: "",
-//   deadline: "",
-//   assignment_id: 0,
-//   file: "",
-//   submission: {
-//     id: 0,
-//     submission_file: "",
-//     submission_date: "",
-//   },
-// };
 
 type teacherAssignment = {
   answer_key: string;
@@ -52,7 +38,9 @@ export default function AssignmentPage() {
     summary_bullets: [],
   });
 
-  const isAutomation = useSelector((state: RootState) => state.isAutomationPage.isAutomation);
+  const isAutomation = useSelector(
+    (state: RootState) => state.isAutomationPage.isAutomation
+  );
 
   const [file, setFile] = useState(null);
   const [assignmentSubmits, setAssignmentSubmits] = useState([]);
@@ -103,7 +91,6 @@ export default function AssignmentPage() {
         },
       });
       console.log("Assignment get", response.data);
-      // assignmentDetials = response.data;
       setAssignmentDetails([response.data]);
     };
     getAssignment();
@@ -143,7 +130,7 @@ export default function AssignmentPage() {
       // );
 
       // console.log("Automated feedback", response.data);
-      dispatch(isAutomationState(true))
+      dispatch(isAutomationState(true));
     } catch (error) {
       console.error("Error submitting assignment:", error);
     }
@@ -165,38 +152,6 @@ export default function AssignmentPage() {
     };
     getResult();
   }, [assig_id, token]);
-
-  // useEffect(() => {
-  //   const getAssignment = async () => {
-  //     const response = await axios.get(`${API_URL}/assignment`, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //         Accept: "application/json",
-  //       },
-  //       params:{
-  //           assignment_id: assig_id,
-  //       }
-  //     });
-  //     console.log("Assignment get", response.data);
-  //   };
-  //   getAssignment();
-  // }, [token, assig_id]);
-
-  // useEffect(() => {
-  //   const getResult = async () => {
-  //     const response = await axios.get(`${API_URL}/assignment/submissions`, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //         Accept: "application/json",
-  //       },
-  //       params:{
-  //           assignment_id: assig_id,
-  //       }
-  //     });
-  //     setAssignmentSubmits(response.data.submission);
-  //   };
-  //   getResult();
-  // }, []);
 
   //  check result Api call
   async function CheckResult() {
@@ -221,7 +176,7 @@ export default function AssignmentPage() {
   async function submitAssignment() {
     const formData = new FormData();
     if (!file) {
-      alert("Please select a file to upload.");
+      toast.error("Please select a file to upload.");
       return;
     }
     formData.append("assignment_id", assig_id);
@@ -251,8 +206,38 @@ export default function AssignmentPage() {
     }
   }
 
-  function uploadAnswerKey() {
-    toast("Upload answer")
+  async function uploadAnswerKey() {
+
+    const formData = new FormData();
+    if (!file) {
+      toast.error("Please select a file to upload.");
+      return;
+    }
+    formData.append("assignment_id", assig_id);
+    formData.append("file", file);
+    try {
+      const response = await axios.post(
+        `${API_URL}/assignment/answer_key`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            assignment_id: assig_id,
+          },
+        }
+      );
+      console.log(response);
+
+      toast("Successfully uploaded answer key", {
+        icon: "👏",
+      });
+    } catch (error) {
+      toast.error("Error uploading file. Please try again.");
+      console.error("Error uploading file:", error);
+    }
   }
 
   return (
@@ -307,28 +292,29 @@ export default function AssignmentPage() {
                 <p className="text-gray-700 text-lg ml-4 mt-4">
                   {teacherAssignment[0].assignment_description}
                 </p>
-
-                <div>
-                  <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
-                    Files:
-                  </h3>
-                  <a
-                    href={teacherAssignment[0].assignment_file}
-                    target="_blank"
-                    className="flex items-center gap-3 border border-gray-300 rounded-md p-3 w-fit ml-6 mt-2 hover:shadow-md transition-all cursor-pointer"
-                  >
-                    <img src="/file_img.svg" alt="file" className="h-6 w-6" />
-                    <span className="text-gray-700 hover:text-blue-500 text-sm">
-                      {
-                        decodeURIComponent(
-                          teacherAssignment[0].assignment_file
-                            .split("/")
-                            .pop() || ""
-                        ).split("_")[1]
-                      }
-                    </span>
-                  </a>
-                </div>
+                {teacherAssignment[0].assignment_file && (
+                  <div>
+                    <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
+                      Files:
+                    </h3>
+                    <a
+                      href={teacherAssignment[0].assignment_file}
+                      target="_blank"
+                      className="flex items-center gap-3 border border-gray-300 rounded-md p-3 w-fit ml-6 mt-2 hover:shadow-md transition-all cursor-pointer"
+                    >
+                      <img src="/file_img.svg" alt="file" className="h-6 w-6" />
+                      <span className="text-gray-700 hover:text-blue-500 text-sm">
+                        {
+                          decodeURIComponent(
+                            teacherAssignment[0].assignment_file
+                              .split("/")
+                              .pop() || ""
+                          ).split("_")[1]
+                        }
+                      </span>
+                    </a>
+                  </div>
+                )}
               </div>
             )}
 
@@ -347,25 +333,27 @@ export default function AssignmentPage() {
                   {assignmentDetials[0].assignment_description}
                 </p>
 
-                <div>
-                  <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
-                    Files:
-                  </h3>
-                  <a
-                    href={assignmentDetials[0].file}
-                    target="_blank"
-                    className="flex items-center gap-3 border border-gray-300 rounded-md p-3 w-fit ml-6 mt-2 hover:shadow-md transition-all cursor-pointer"
-                  >
-                    <img src="/file_img.svg" alt="file" className="h-6 w-6" />
-                    <span className="text-gray-700 hover:text-blue-500 text-sm">
-                      {
-                        decodeURIComponent(
-                          assignmentDetials[0].file.split("/").pop() || ""
-                        ).split("_")[1]
-                      }
-                    </span>
-                  </a>
-                </div>
+                {assignmentDetials[0].file && (
+                  <div>
+                    <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
+                      Files:
+                    </h3>
+                    <a
+                      href={assignmentDetials[0].file}
+                      target="_blank"
+                      className="flex items-center gap-3 border border-gray-300 rounded-md p-3 w-fit ml-6 mt-2 hover:shadow-md transition-all cursor-pointer"
+                    >
+                      <img src="/file_img.svg" alt="file" className="h-6 w-6" />
+                      <span className="text-gray-700 hover:text-blue-500 text-sm">
+                        {
+                          decodeURIComponent(
+                            assignmentDetials[0].file.split("/").pop() || ""
+                          ).split("_")[1]
+                        }
+                      </span>
+                    </a>
+                  </div>
+                )}
               </div>
             )}
             {!isTeacher && (
@@ -394,9 +382,12 @@ export default function AssignmentPage() {
                     accept="application/pdf"
                     className="block ml-4 mt-6 w-full text-lg text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
-                  <div onClick={()=>{
-                    uploadAnswerKey()
-                  }} className="text-[#f2f4f8] bg-[#8591ad] w-[20rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300">
+                  <div
+                    onClick={() => {
+                      uploadAnswerKey();
+                    }}
+                    className="text-[#f2f4f8] bg-[#8591ad] w-[20rem] h-[3rem] rounded-lg cursor-pointer hover:bg-[#a0abc7] transition duration-300"
+                  >
                     <p className="text-center mt-3 font-semibold">
                       Upload Answer Key
                     </p>
