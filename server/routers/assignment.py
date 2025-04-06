@@ -50,7 +50,15 @@ async def get_assignment(assignment_id:str,user:user_dependency,db: db_dependenc
     #     }
     
     submission = db.query(models.Submissions).filter(models.Submissions.assignment_id == assignment.id, models.Submissions.student_id == user.id).first()
-    
+    # filtering out submission to only include necessary fields
+    if submission:
+        submission = {
+            "id": submission.id,
+            "submission_file": submission.submission_file,
+            "submission_time": submission.submission_time,
+        }
+    else:
+        submission = None
     return {
         "assignment_id": assignment.id,
         "assignment_name": assignment.assignment_name,

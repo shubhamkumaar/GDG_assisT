@@ -10,6 +10,7 @@ export interface AuthState {
   error: string | null;
   token: string | null;
   isAuthenticated: boolean;
+  is_teacher: boolean;
 }
 
 // const d = {

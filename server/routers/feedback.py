@@ -801,6 +801,9 @@ def xml_to_json(xml:str)->str:
         if 'feedback' in result and 'detailed_feedback' in result['feedback'] and result['feedback']['detailed_feedback'] is not None:
             if 'question' in result['feedback']['detailed_feedback'] and result['feedback']['detailed_feedback']['question'] is not None:
                 questions = result['feedback']['detailed_feedback']['question']
+                # check if only a single question is present
+                if isinstance(questions, dict):
+                    questions = [questions]
                 result['feedback']['detailed_feedback'] = questions
                 
                 # Process each question

@@ -6,19 +6,44 @@ import { isSidebarState } from "../features/isSidebar/isSidebarSlice";
 import axios from "axios";
 import { getToken } from "../utils/jwt";
 import toast from "react-hot-toast";
-import { log } from "console";
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AssignmentPage() {
 
-  const token = getToken()
+    const [feedbackData, setFeedbackData] = useState({
+        score: 0,
+        max_score: 0,
+        summary_bullets: []
+    });
+
+
+    const [file, setFile] = useState(null);
+    const [submit, setSubmit] = useState(false);
+    const [assignmentSubmits, setAssignmentSubmits] = useState([])
+    const [isResultOut, setIsResultOut] = useState(false);
+    const [statusFeedback, setStatusFeedback] = useState([]);
+    const [getFeedback, setGetFeedback] = useState([]);
+    const [automationStarted, setAutomationStarted] = useState(true);
+    const [assignmentDetials, setAssignmentDetails] = useState([]);
+    console.log("statusFeedback", getFeedback);
+    console.log("assignmentDetials", assignmentDetials);
+
+    const [resultValue, setResultValue] = useState(false);
+    console.log("feedbackData", feedbackData);
+
+
+    const token = getToken();
+    const { state } = useLocation();
+    const assig_id = state?.id;
+
+
 
   const isTeacher = useSelector((state: RootState) => state.auth.user?.is_teacher)
   const dispatch = useDispatch();
 
-  const { state } = useLocation();
-  const assig_id = state?.id;
+
 
   const result = {
     score: 78.0,
@@ -62,21 +87,6 @@ export default function AssignmentPage() {
     },
   };
 
-  // const students = [
-  //   ...Array.from({ length: 20 }, (_, i) => ({
-  //     id: i + 1,
-  //     name: `Student ${i + 1}`,
-  //     marks: "85",
-  //   })),
-  // ];
-
-  const [file, setFile] = useState(null);
-  const [submit, setSubmit] = useState(false);
-  const [assignmentSubmits, setAssignmentSubmits] = useState([])
-  const [isResultOut, setIsResultOut] = useState(false);
-  
-  const [automationStarted, setAutomationStarted] = useState(false);
-  
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -90,38 +100,38 @@ export default function AssignmentPage() {
     }
   };
 
-  const value = [
-    {
-      id: 1,
-      name: "Student 1",
-      status: "completed",
-    },
-    {
-      id: 2,
-      name: "Student 2",
-      status: "completed",
-    },
-    {
-      id: 3,
-      name: "Student 3",
-      status: "completed",
-    },
-    {
-      id: 4,
-      name: "Student 4",
-      status: "completed",
-    },
-    {
-      id: 5,
-      name: "Student 5",
-      status: "completed",
-    },
-    // {
-    //   id: 6,
-    //   name: "Student 6",
-    //   status: "completed",
-    // }
-  ]
+  // const value = [
+  //   {
+  //     id: 1,
+  //     student_name: "Student 1",
+  //     status: "completed",
+  //   },
+  //   {
+  //     id: 2,
+  //     student_name: "Student 2",
+  //     status: "completed",
+  //   },
+  //   {
+  //     id: 3,
+  //     student_name: "Student 3",
+  //     status: "completed",
+  //   },
+  //   {
+  //     id: 4,
+  //     student_name: "Student 4",
+  //     status: "completed",
+  //   },
+  //   {
+  //     id: 5,
+  //     student_name: "Student 5",
+  //     status: "completed",
+  //   },
+  //   // {
+  //   //   id: 6,
+  //   //   name: "Student 6",
+  //   //   status: "completed",
+  //   // }
+  // ]
 
 
   useEffect(() => {
@@ -162,7 +172,7 @@ export default function AssignmentPage() {
         }
       });
       
-      console.log("Assignment get",response.data);
+      setAssignmentDetails(response.data);
     };
     getAssignment();
   }, [token, assig_id]);
@@ -199,57 +209,15 @@ export default function AssignmentPage() {
       });
 
       console.log("Automated feedback", response.data);
-      setAutomationStarted(!automationStarted);
+      setAutomationStarted(true);
     } catch (error) {
       console.error("Error submitting assignment:", error);
     }
   }
 
-  // useEffect(() => {
-  //   const fetchAssignment = async () => {
-  //     const formData = new FormData();
-  //     console.log("file", file);
-      
-  //     if (file) {
-  //       formData.append("file", file); 
-  //     }
-  //       const response = await axios.post(`${API_URL}/assignment/submit_assignment`,
-  //         formData, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           "message-Type": "multipart/form-data",
-  //           Accept: "application/json",
-  //         },
-  //         params:{
-  //             assignment_id: assig_id,
-  //         }
-  //       });
-  //       setFile(null);
-  //       console.log("Assignment get",response.data);
-  //     }
-  //     fetchAssignment();
-  //   }, [file]);
-
-
-  useEffect(() => {
-    const getAssignment = async () => {
-      const response = await axios.get(`${API_URL}/assignment`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-        params:{
-            assignment_id: assig_id,
-        }
-      });
-      console.log("Assignment get", response.data);
-    };
-    getAssignment();
-  }, [token, assig_id]);
-
   useEffect(() => {
     const getResult = async () => {
-      const response = await axios.get(`${API_URL}/assignment/submissions`, {
+      const response = await axios.get("http://localhost:8000/feedback_status", {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
@@ -258,11 +226,66 @@ export default function AssignmentPage() {
             assignment_id: assig_id,
         }
       });
-      setAssignmentSubmits(response.data.submission);
+      console.log("here or there",response.data.submissions)
+      setStatusFeedback(response.data.submissions);
     };
     getResult();
-  }, []);
+  }, [assig_id,token]);
+
+  // useEffect(() => {
+  //   const getAssignment = async () => {
+  //     const response = await axios.get(`${API_URL}/assignment`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         Accept: "application/json",
+  //       },
+  //       params:{
+  //           assignment_id: assig_id,
+  //       }
+  //     });
+  //     console.log("Assignment get", response.data);
+  //   };
+  //   getAssignment();
+  // }, [token, assig_id]);
+
+
+  // useEffect(() => {
+  //   const getResult = async () => {
+  //     const response = await axios.get(`${API_URL}/assignment/submissions`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         Accept: "application/json",
+  //       },
+  //       params:{
+  //           assignment_id: assig_id,
+  //       }
+  //     });
+  //     setAssignmentSubmits(response.data.submission);
+  //   };
+  //   getResult();
+  // }, []);
   
+  //  check result Api call
+  async function CheckResult() {
+    try {
+      const response = await axios.get("http://localhost:8000/feedback", {
+          headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+          },
+          params: {
+              submission_id: assignmentDetials?.submission?.id,
+          }
+      });
+      console.log("feedback", response.data);
+      setFeedbackData(response.data);
+      setResultValue(true);
+      } catch (error) {
+          console.error("Error fetching feedback:", error);
+      }
+  }
+
+
   async function submitAssignment() {
     const formData = new FormData();
     if (!file) {
@@ -291,7 +314,8 @@ export default function AssignmentPage() {
       console.error("Error uploading file:", error);
     }
   }
-  
+
+
 
   return (
     <div className=" flex flex-col  bg-[#F2F4F8] w-full h-screen">
@@ -328,23 +352,24 @@ export default function AssignmentPage() {
 
       <div className="flex flex-row items-center justify-center h-full ">
         {/* assignment part */}
+        
         <div className="w-[48rem] h-[38rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <div className="p-6">
             <h2 className="text-3xl font-bold text-gray-900 mt-3 text-center">
-              title
+              {assignmentDetials.assignment_name}
             </h2>
 
             <p className="text-lg text-gray-600 mr-6 mt-4 text-right">
-              <span className="font-semibold">Due Date:</span> dueDate
+              <span className="font-semibold">Due Date:</span> {assignmentDetials.deadline}
             </p>
 
-            <p className="text-gray-700 text-lg ml-4 mt-4">description</p>
+            <p className="text-gray-700 text-lg ml-4 mt-4">{assignmentDetials.assignment_description}</p>
 
             <div>
               <h3 className="font-bold text-lg text-gray-800 ml-4 mt-2">
                 Files:
               </h3>
-              <p className="text-gray-700 ml-6">getter</p>
+              <p className="text-gray-700 ml-6">{assignmentDetials.file}</p>
             </div>
 
             {!isTeacher && (
@@ -352,7 +377,7 @@ export default function AssignmentPage() {
                 <span className="font-bold text-lg text-gray-800">Status:</span>
                 <span
                   className={`ml-2 px-2 py-1 text-sm ${
-                    status === "Completed"
+                    true
                       ? "text-green-500 bg-green-100"
                       : "text-red-500 bg-red-100"
                   } text-sm rounded-full`}
@@ -377,7 +402,7 @@ export default function AssignmentPage() {
               </div>
             </div>
           ) : (
-            <div className="mt-4 p-6 border-t border-gray-200   ">
+             <div className="mt-4 p-6 border-t border-gray-200   ">
               <label className="block text-xl ml-4 font-bold text-gray-700 mb-2">
                 Upload your assignment:
               </label>
@@ -398,29 +423,31 @@ export default function AssignmentPage() {
 
         {/* result part */}
         {!isResultOut ? isTeacher ? automationStarted ?
+
           <div className="flex flex-col w-[32rem] h-[36rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
             <h1 className="my-4 font-semibold text-2xl text-center">Automation Status</h1>
 
             <div className="flex flex-col justify-center items-center gap-2 overflow-auto w-full hide-scrollbar h-[32rem]">
-            {value.map((student) => (
+            {statusFeedback.map((student) => (
                 <div
-                  key={student.id}
+                  key={student?.id}
                   className="bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors w-[45vh] flex flex-row justify-around items-start p-4 shadow-md hover:shadow-lg"
                 >
                   <div className="flex flex-col justify-center items-center">
                     <h3 className="text-lg font-medium text-gray-800">
-                      {student.name}
+                      {student?.student_name}
                     </h3>
                     <span className={`text-sm px-2 py-1 rounded ${
-                      student.status === 'completed' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-700'
+                      student?.status === 'completed' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-700'
                     }`}>
-                      {student.status}
+                      {student?.status}
                     </span>
                   </div>
                   
                   <Link
                   onClick={() => dispatch(isSidebarState(true))}
-                    to="result-review">
+                    to="result-review"
+                    state={{id: student?.id}}>
                     <button className="mt-3 py-2 text-sm text-gray-700 hover:scale-[1.05] rounded cursor-pointer transition-colors">
                       View PDF
                     </button>
@@ -431,6 +458,7 @@ export default function AssignmentPage() {
             </div>
 
           </div>
+
           : <div className="flex flex-col w-[32rem] h-[32rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
             <h1 className="my-4 font-semibold text-2xl text-center">Submitted Listed</h1>
             {assignmentSubmits.map((submit) => (
@@ -448,8 +476,9 @@ export default function AssignmentPage() {
                 </div>
               </div>
             ))}
-        </div>
-        : <div className="w-[24rem] h-[10rem] mx-auto bg-red-50 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+          </div>
+
+          : <div className="w-[24rem] h-[10rem] mx-auto bg-red-50 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <div className="transition-all duration-300 ease-in-out">
             <p className="text-red-800 text-3xl text-center mt-8">
               Result is not out yet.
@@ -459,6 +488,7 @@ export default function AssignmentPage() {
             </p>
           </div>
         </div>
+
         : isTeacher ? (
           <div className="flex flex-col w-[32rem] h-[32rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
             <div className="text-green-800 text-4xl mt-2 text-center">
@@ -471,6 +501,7 @@ export default function AssignmentPage() {
             </div>
           </div>
         ) : (
+          resultValue ? 
           <div className="flex flex-col w-[32rem] h-[32rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
             <div className="transition-all duration-300 ease-in-out">
               <div className=" p-4 rounded-lg">
@@ -479,14 +510,15 @@ export default function AssignmentPage() {
                 </div>
                 <p className="text-green-700 text-2xl mt-4 ml-4">
                   Your score:{" "}
-                  <span className="font-bold">{result.score}/100</span>
+                  <span className="font-bold">{feedbackData.score}/{feedbackData.max_score}</span>
                 </p>
               </div>
 
-              <div className=" mt-2 p-8 border-t border-gray-200 ">
+              <div className="px-8 mb-4 border-t border-gray-300 ">
                 <h3 className="font-bold text-2xl text-gray-800">Summary:</h3>
+                <div className="h-[16rem] overflow-auto hide-scrollbar">
                 <ul className="list-disc list-inside mt-4">
-                  {result.summary_bullets.map((bullet, index) => (
+                  {feedbackData.summary_bullets.map((bullet, index) => (
                     <li
                       key={index}
                       className=" ml-2 mt-2 text-xl text-gray-700"
@@ -495,12 +527,13 @@ export default function AssignmentPage() {
                     </li>
                   ))}
                 </ul>
+                </div>
               </div>
 
               <Link
                 onClick={() => dispatch(isSidebarState(true))}
                 to="result-feedback"
-                state={result}
+                state={{id: assignmentDetials.submission.id}}
               >
                 <div className="justify-self-center w-[18rem] bg-[#aab2c6] text-center text-black px-4 py-2 rounded-lg cursor-pointer hover:bg-[#8591ad] text-xl transition duration-300">
                   Get detailed feedback
@@ -508,10 +541,19 @@ export default function AssignmentPage() {
               </Link>
             </div>
           </div>
+          :
+          <div className="flex flex-col justify-center items-center w-[12rem] h-[4rem] mx-auto bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+            <div 
+            onClick={CheckResult}
+            className="transition-all duration-300 ease-in-out">
+                check Result
+            </div>
+          </div>
+          
         )}
-
 
       </div>
     </div>
   );
 }
+
