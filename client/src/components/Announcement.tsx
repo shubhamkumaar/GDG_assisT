@@ -108,7 +108,7 @@ export default function Announcement() {
   useEffect(()=>{
     const fetchAnnouncment = async () => {
         try {
-            const response = await axios.get(`http://${API_URL}/class/announcements`, {
+            const response = await axios.get(`https://${API_URL}/class/announcements`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

@@ -38,7 +38,7 @@ export default function Student () {
     const fetchStudents = async () => {
       try {
         const response = await axios.get(
-          `http://${API_URL}/class/students`,
+          `https://${API_URL}/class/students`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

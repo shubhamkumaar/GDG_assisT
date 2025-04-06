@@ -28,7 +28,7 @@ export default function Assignment() {
     const fetchAnnouncment = async () => {
       try {
         const response = await axios.get(
-          `http://${API_URL}/class/assignments`,
+          `https://${API_URL}/class/assignments`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
