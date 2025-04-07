@@ -15,13 +15,21 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = Settings.GOOGLE_APPLICATION_CREDE
 
 
 # Uploads a file to the bucket
-async def upload_file(file):
+async def upload_file(file, file_name=None):
     if not file:
         return {"message": "file not found", "status": 404}
     # Save the file to the server
-    source_file_path = f"./server/tmp/{file.filename}"
-    with open(source_file_path, "wb") as buffer:
-        buffer.write(await file.read())
+    if not os.path.exists("./server/tmp"):
+        os.makedirs("./server/tmp")
+    if isinstance(file,bytes):
+        # If the file is a bytes object, save it directly
+        source_file_path = f"./server/tmp/{file_name}"
+        with open(source_file_path, "wb") as buffer:
+            buffer.write(file)
+    else:
+        source_file_path = f"./server/tmp/{file.filename}"
+        with open(source_file_path, "wb") as buffer:
+            buffer.write(await file.read())
 
     # Initialize a storage client
     storage_client = storage.Client()
@@ -46,6 +54,46 @@ async def upload_file(file):
         # Delete the file from the server
         os.remove(source_file_path)
 # print(upload_file("./server/tmp/SOFTWARE22BCE10461.pdf"))
+
+
+def upload_file_sync(file, file_name=None):
+    if not file:
+        return {"message": "file not found", "status": 404}
+    # Save the file to the server
+    if not os.path.exists("./server/tmp"):
+        os.makedirs("./server/tmp")
+    if isinstance(file,bytes):
+        # If the file is a bytes object, save it directly
+        source_file_path = f"./server/tmp/{file_name}"
+        with open(source_file_path, "wb") as buffer:
+            buffer.write(file)
+    else:
+        return {"message" : "please use async upload_file", "status": 400}
+
+    # Initialize a storage client
+    storage_client = storage.Client()
+    bucket = storage_client.bucket("gdg-assist")
+
+    file_name = os.path.basename(source_file_path)
+    # Create unique filename
+    destination_filename = f"{uuid.uuid4().hex[:8]}_{file_name}"
+
+    # Optional: set a generation-match precondition to avoid race conditions
+    generation_match_precondition = 0
+    try:
+        blob = bucket.blob(destination_filename)
+        blob.upload_from_filename(source_file_path,if_generation_match=generation_match_precondition)
+        blob.make_public()
+        file_url = blob.public_url
+        return {"file_url":file_url,"message": "file uploaded successfully", "status": 200}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An error occurred while uploading the file.")
+        
+    finally:
+        # Delete the file from the server
+        os.remove(source_file_path)
+# print(upload_file("./server/tmp/SOFTWARE22BCE10461.pdf"))
+
 
 # delete file from the bucket
 def delete_file(file_url):

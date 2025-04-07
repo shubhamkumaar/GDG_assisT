@@ -12,13 +12,13 @@ import os
 # # from sqlalchemy.orm import Session
 # from .routers.auth import verify_jwt_token
 
-app = FastAPI()
+app = FastAPI(root_path="/api")
 
 app.add_middleware(SessionMiddleware, secret_key="your_secret_key_here")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], 
+    allow_origins=["http://localhost:5173", "http://assist.kanishak.me", "https://assist.kanishak.me"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

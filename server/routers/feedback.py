@@ -1,7 +1,8 @@
 import json
 import os
 import re
-from fastapi import Form, APIRouter, Depends
+import time
+from fastapi import BackgroundTasks, Form, APIRouter, Depends
 from typing import Annotated
 from pydantic import BaseModel
 import google.generativeai as genai
@@ -10,12 +11,16 @@ from functools import lru_cache
 import requests
 from server import config
 from server.utils.gemini import gemini_generation_config,safety_settings, wait_for_files_active, upload_to_gemini, gemini_generation_config_thinking
+from server.utils.google_cloud_storage import upload_file_sync as upload_to_gcs
 import server.db.models as models
 from server.routers.check_answer import ocr_response_mistral, save_images_ocr, ocr_response_gemini, ocr_answer_submission
 from sqlalchemy.orm import Session
 from server.db.database import get_db
 from server.routers.auth import verify_jwt_token
 import xmltodict
+import redis
+
+redis_client = redis.Redis()
 
 router = APIRouter(
     tags=["Automation"],
@@ -32,6 +37,23 @@ Settings = get_settings()
 
 gemini_api_key = Settings.GENAI_API_KEY
 genai.configure(api_key=gemini_api_key)
+
+def set_redis_cache(key:str, value:str|dict, expiration:int=-1):
+    """Set a value in Redis cache with an expiration time."""
+    # if expiration = -1
+    # then the key will never expire
+    if isinstance(value, dict):
+        value = json.dumps(value)
+    # set the value in redis
+    res = redis_client.set(key, value, ex=expiration) if expiration != -1 else redis_client.set(key, value)
+
+def get_redis_cache(key:str)->dict|str|None:
+    """Get a value from Redis cache."""
+    value = redis_client.get(key)
+    if value is not None:
+        value = value.decode('utf-8')
+        value = json.loads(value) if value else None
+    return value
 
 def split_questions(text):
     # regex to find markdown h1 headers
@@ -187,15 +209,16 @@ def generate_rubric(job_id:str)->str:
             upload_to_gemini(f"{job_dir}/materials/{material}") 
             for material in materials
         ]
+        wait_for_files_active(files)
         for file in files:
             parts.append(file)
     
     if answer_file is not None:
         parts.append("THE ANSWER KEY:\n====================\n")
-        parts.append(upload_to_gemini(f"{job_dir}/{answer_file}"))
+        answer_key = upload_to_gemini(f"{job_dir}/{answer_file}")
+        wait_for_files_active([answer_key])
+        parts.append(answer_key)
 
-    if materials or answer_file:
-        wait_for_files_active(files)
 
     gemini_client = genai.GenerativeModel(
                         model_name="gemini-2.0-flash-thinking-exp-01-21",
@@ -778,6 +801,9 @@ def xml_to_json(xml:str)->str:
         if 'feedback' in result and 'detailed_feedback' in result['feedback'] and result['feedback']['detailed_feedback'] is not None:
             if 'question' in result['feedback']['detailed_feedback'] and result['feedback']['detailed_feedback']['question'] is not None:
                 questions = result['feedback']['detailed_feedback']['question']
+                # check if only a single question is present
+                if isinstance(questions, dict):
+                    questions = [questions]
                 result['feedback']['detailed_feedback'] = questions
                 
                 # Process each question
@@ -820,21 +846,55 @@ def xml_to_json(xml:str)->str:
     cleaned_data = cleanup_feedback_dict(doc)
     return cleaned_data
 
-@router.post("/feedback")
-def give_feedback(db: db_dependency,submission_id: str = Form(...)):
+def process_ocr_for_db(job_id:str, request_id:str)->str:
+    # temp dir where the response.md file is stored
+    temp_dir = f"./tmp/{job_id}/{request_id}"
+    # now we check if the response.md file is present
+    if not os.path.exists(f"{temp_dir}/response.md"):
+        return {"error": "Response file not found"}
+    # read the response.md file
+    with open(f"{temp_dir}/response.md", "r") as f:
+        response = f.read()
+    # we upload all the images in the temp_dir to gcs
+    # and replace the image paths in the response with the gcs urls
+    images = []
+    for file in os.listdir(temp_dir):
+        if file.endswith(".png") or file.endswith(".jpg") or file.endswith(".jpeg"):
+            # upload the image to gcs
+            image_path = os.path.join(temp_dir, file)
+            with open(image_path, "rb") as img_file:
+                image_data = img_file.read()
+            # upload to gcs
+            gcs_url = upload_to_gcs(image_data, file)
+            gcs_url = gcs_url["file_url"]
+            images.append((file, gcs_url))
+    # replace the image path in the response with the gcs url
+    for file, gcs_url in images:
+        response = response.replace(f"({file})", f"({gcs_url})")
+    return response
+
+def give_feedback(db: db_dependency,submission_id: str):    
     # first we get the corresponding submission
     submission = db.query(models.Submissions).filter(models.Submissions.id == submission_id).first()
     if submission is None:
         return {"error": "Submission not found"}
-    
-    # check if the feedback has already been generated
-    if submission.feedback is not None:
-        # it is in the form of a json string in the database
-        return {"feedback": submission.feedback}
 
     # then we get the corresponding assignment
     assignment = db.query(models.Assignments).filter(models.Assignments.id == submission.assignment_id).first()
-    
+
+    # update status of the submission object inside the above to processing
+    assignment_object = get_redis_cache(f"assignment_{assignment.id}")
+    for sub in assignment_object["submissions"]:
+        if sub["id"] == submission.id:
+            sub["status"] = "processing"
+            break
+    set_redis_cache(f"assignment_{assignment.id}", assignment_object)
+
+    # check if the feedback has already been generated
+    if submission.feedback is not None:
+        # it is in the form of a json string in the database
+        return {"feedback": json.loads(submission.feedback)} 
+
     # then we get the corresponding class
     selected_class = db.query(models.Classes).filter(models.Classes.id == assignment.class_id).first()
 
@@ -976,13 +1036,220 @@ def give_feedback(db: db_dependency,submission_id: str = Form(...)):
     
     submission.feedback = json.dumps(json_data)
     submission.marks = json_data["score"]
+    ocr_text = process_ocr_for_db(job_id, request_id)
+    submission.ocr_text = ocr_text
+    db.commit()
+    # update status of the submission object inside the above to completed
+    assignment_object = get_redis_cache(f"assignment_{assignment.id}")
+    for sub in assignment_object["submissions"]:
+        if sub["id"] == submission.id:
+            sub["status"] = "completed"
+            break
+    set_redis_cache(f"assignment_{assignment.id}", assignment_object)
 
-    db.commit()    
+    # check if this is the last submission for this assignment
+    # if yes, then update the status of the assignment object to completed
+    assignment_object = get_redis_cache(f"assignment_{assignment.id}")
+    if all(sub["status"] == "completed" for sub in assignment_object["submissions"]):
+        assignment_object["status"] = "completed"
+        set_redis_cache(f"assignment_{assignment.id}", assignment_object)
+        # we can remove the assignment specific folder from the tmp directory at thsi point, skipping for now
+    
     return json_data
 
+# dummy function of `give_feedback` using time sleep for faster debugging
+def give_feedback_dummy(db: db_dependency, submission_id: str):
+    # first we get the corresponding submission
+    submission = db.query(models.Submissions).filter(models.Submissions.id == submission_id).first()
+    if submission is None:
+        return {"error": "Submission not found"}
 
+    # then we get the corresponding assignment
+    assignment = db.query(models.Assignments).filter(models.Assignments.id == submission.assignment_id).first()
 
+    # update status of the submission object inside the above to processing
+    assignment_object = get_redis_cache(f"assignment_{assignment.id}")
+    for sub in assignment_object["submissions"]:
+        if sub["id"] == submission.id:
+            sub["status"] = "processing"
+            break
+    set_redis_cache(f"assignment_{assignment.id}", assignment_object)
 
+    time.sleep(30)
+    
+    # update status of the submission object inside the above to completed
+    assignment_object = get_redis_cache(f"assignment_{assignment.id}")
+    for sub in assignment_object["submissions"]:
+        if sub["id"] == submission.id:
+            sub["status"] = "completed"
+            break
+    set_redis_cache(f"assignment_{assignment.id}", assignment_object)
+
+    # check if this is the last submission for this assignment
+    # if yes, then update the status of the assignment object to completed
+    assignment_object = get_redis_cache(f"assignment_{assignment.id}")
+    if all(sub["status"] == "completed" for sub in assignment_object["submissions"]):
+        assignment_object["status"] = "completed"
+        set_redis_cache(f"assignment_{assignment.id}", assignment_object)
+
+def queue_feedback(db: db_dependency, assignment_id: str, background_tasks: BackgroundTasks): 
+    """ Takes a assignment id and queues the feedback generation process for all the submissions """
+    # checking if the assignment id is valid
+    assignment = db.query(models.Assignments).filter(models.Assignments.id == assignment_id).first()
+    if assignment is None:
+        return {"error": "Assignment not found"}
+    # checking if the assignment has submissions
+    submissions = db.query(models.Submissions).filter(models.Submissions.assignment_id == assignment_id).all()
+    if len(submissions) == 0:
+        return {"error": "No submissions found for this assignment"}
+    
+    # add task to redis cache
+    assignment_object = get_redis_cache(f"assignment_{assignment_id}")
+    assignment_object["status"] = "processing"
+    set_redis_cache(f"assignment_{assignment_id}", assignment_object, expiration=-1)
+
+    # add the submission ids to the background tasks
+    for submission in submissions:
+        # check if the feedback is already generated
+        if submission.feedback is not None:
+            continue
+        # find the user who submitted the assignment
+        student = db.query(models.User).filter(models.User.id == submission.student_id).first()
+        assignment_object = get_redis_cache(f"assignment_{assignment_id}")
+        submission_obj = {
+            "id": submission.id,
+            "student_name": student.name,
+            "status": "pending"
+        }
+        assignment_object["submissions"].append(submission_obj)
+        set_redis_cache(f"assignment_{assignment_id}", assignment_object, expiration=-1)
+        background_tasks.add_task(give_feedback, db, submission.id)
     
 
+@router.post("/automated_feedback")
+def queue_feedback_tasks(db: db_dependency, user:user_dependency, background_tasks:BackgroundTasks, assignment_id: str = Form(...)):
+    """ Takes a assignment id and queues the feedback generation process for all the submissions
+    for that assignment. The task is queued in the background and a task id (which is simply the assignment id in this case)
+    is returned to the user. The task id can be used to check the status of the task.
+    """
+    # checking if the user is a teacher
+    if user.is_teacher == False:
+        return {"error": "You are not authorized to perform this action"}
+    # checking if the user is a teacher for the class which the assignment belongs to
+    assignment = db.query(models.Assignments).filter(models.Assignments.id == assignment_id).first()
+    if assignment is None:
+        return {"error": "Assignment not found"}
+    class_id = assignment.class_id
 
+    assignment_class = db.query(models.Classes).filter(models.Classes.id == class_id).first()
+
+    if assignment_class.teacher_id != user.id:
+        return {"error": "You are not authorized to perform this action"}
+
+    # check if the assignment processing is already in progress or completed
+    assignment_object = get_redis_cache(f"assignment_{assignment_id}")
+    if assignment_object is not None and assignment_object["status"] != "pending":
+        if assignment_object["status"] == "processing":
+            return {"error": "Feedback generation process is already in progress"}
+        elif assignment_object["status"] == "completed":
+            return {"error": "Feedback generation for this assignment is already complete"}
+
+    assignment_object = {
+        "status": "pending",
+        "submissions": []
+    }
+    set_redis_cache(f"assignment_{assignment_id}", assignment_object, expiration=-1)
+    queue_feedback(db,assignment_id,background_tasks)
+    return {"message": "Feedback generation process started", "assignment_id": assignment_id}
+
+@router.get("/feedback_status")
+def get_feedback_status(db: db_dependency, user:user_dependency,assignment_id: str):
+    """ Returns the status of the feedback generation process for the given assignment id.
+    Can be accessed by either a teacher or a student belonging to the class.
+    """
+    class_id = db.query(models.Assignments).filter(models.Assignments.id == assignment_id).first().class_id
+    # checking if the user is a teacher
+    if user.is_teacher == False:
+        # checking if the user is a student for the class which the assignment belongs to
+        class_student = db.query(models.Class_Students).filter(models.Class_Students.class_id == class_id, models.Class_Students.student_id == user.id).first()
+        if class_student is None:
+            return {"error": "You are not authorized to perform this action"}
+    elif user.is_teacher == True:
+        # checking if the user is a teacher for the class which the assignment belongs to
+        class_assigment = db.query(models.Classes).filter(models.Classes.id == class_id).first()
+        if class_assigment.teacher_id != user.id:
+            return {"error": "You are not authorized to perform this action"}
+    # checking if the user is a teacher for the class which the assignment belongs to
+    assignment_object = get_redis_cache(f"assignment_{assignment_id}")
+    ttl = redis_client.ttl(f"assignment_{assignment_id}")
+    if assignment_object is None:
+        return {"error": "Either the assignment id is invalid or the feedback generation process has not started yet"}
+    return assignment_object
+
+@router.get("/feedback")
+def get_feedback(db: db_dependency, user:user_dependency, submission_id: str):
+    """ Returns the feedback for the given submission id.
+    Can be accessed by either a teacher or a student belonging to the class.
+    """
+    # checking if the user is a teacher
+    if user.is_teacher == False:
+        # checking if the user is the one who submitted the assignment
+        submission = db.query(models.Submissions).filter(models.Submissions.id == submission_id).first()
+        if submission is None:
+            return {"error": "Submission not found"}
+        if submission.student_id != user.id:
+            return {"error": "You are not authorized to perform this action"}
+        # check if the feedback has been reviewed
+        if submission.is_reviewed == False:
+            return {"error": "Feedback has not been reviewed yet"}
+    elif user.is_teacher == True:
+        # checking if the user is a teacher for the class which the assignment belongs to
+        submission = db.query(models.Submissions).filter(models.Submissions.id == submission_id).first()
+        if submission is None:
+            return {"error": "Submission not found"}
+        assignment = db.query(models.Assignments).filter(models.Assignments.id == submission.assignment_id).first()
+        class_id = assignment.class_id
+        class_assigment = db.query(models.Classes).filter(models.Classes.id == class_id).first()
+        if class_assigment.teacher_id != user.id:
+            return {"error": "You are not authorized to perform this action"}
+
+    # checking if the feedback has been generated
+    if submission.feedback is None:
+        return {"error": "Feedback has not been generated yet"}
+    
+    feedback = json.loads(submission.feedback)
+    return feedback
+
+@router.post("/review_feedback")
+def review_feedback(db: db_dependency, user:user_dependency, submission_id: str, feedback: str = Form(...)):
+    """ Review and approve feedback with or without any changes to it.
+    """
+    # checking if the user is a teacher
+    if user.is_teacher == False:
+        return {"error": "You are not authorized to perform this action"}
+    elif user.is_teacher == True:
+        # checking if the user is a teacher for the class which the assignment belongs to
+        submission = db.query(models.Submissions).filter(models.Submissions.id == submission_id).first()
+        if submission is None:
+            return {"error": "Submission not found"}
+        assignment = db.query(models.Assignments).filter(models.Assignments.id == submission.assignment_id).first()
+        class_id = assignment.class_id
+        class_assigment = db.query(models.Classes).filter(models.Classes.id == class_id).first()
+        if class_assigment.teacher_id != user.id:
+            return {"error": "You are not authorized to perform this action"}
+
+    # checking if the feedback has been generated
+    if submission.feedback is None:
+        return {"error": "Feedback has not been generated yet"}
+    
+    # check if the feedback is valid json
+    try:
+        json.loads(feedback)
+    except json.JSONDecodeError:
+        return {"error": "Feedback is not a valid JSON"}
+    
+    # updating the feedback in the database
+    submission.feedback = feedback
+    submission.is_reviewed = True
+    db.commit()
+    return {"message": "Feedback updated successfully"}

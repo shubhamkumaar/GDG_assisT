@@ -9,6 +9,8 @@ import TodoPage from "./TodoPage";
 import ResultPage from "./ResultPage";
 import CreateClass from "./CreateClass";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function WorkingPage() {
   const pageValue = useSelector(
     (state: RootState) => state.workingPage.pageName

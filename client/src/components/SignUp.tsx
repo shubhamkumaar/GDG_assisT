@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { AppDispatch } from "../store/store";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");

@@ -2,6 +2,7 @@ export interface User {
   // username: string;
   name: string;
   email: string;
+  is_teacher: boolean;
   // token: string;
 }
 
@@ -10,6 +11,7 @@ export interface AuthState {
   error: string | null;
   token: string | null;
   isAuthenticated: boolean;
+  is_teacher: boolean;
 }
 
 // const d = {

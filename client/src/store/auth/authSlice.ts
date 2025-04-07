@@ -9,6 +9,7 @@ const initialState: AuthState = {
   error: null,
   token: token || null,
   isAuthenticated: !!token,
+  is_teacher: userData && userData !== "undefined" ? JSON.parse(userData).is_teacher : false,
 };
 
 export const loginUser = createAsyncThunk(
@@ -65,7 +66,9 @@ export const googleLogin = createAsyncThunk(
   async (googleToken: string, { rejectWithValue }) => {
     try {
       const response = await api.get("/auth/google/login", {
-        token: googleToken,
+        headers: {
+          Authorization: `Bearer ${googleToken}`,
+        }
       });
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.access_token);

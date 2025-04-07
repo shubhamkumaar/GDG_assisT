@@ -1,9 +1,9 @@
 import axios from "axios";
 import { getToken } from "../utils/jwt";
-const BACKEND_API_URL = "http://127.0.0.1:8000/";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
-  baseURL: BACKEND_API_URL,
+  baseURL: API_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",

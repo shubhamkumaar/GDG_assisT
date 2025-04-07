@@ -70,11 +70,11 @@ export default function Announcement() {
       toast.error("Please fill in all fields");
       return;
     }
-    if(classId === null) {
+    if(class_id === null) {
       toast.error("Class ID is null");
       return;
     }
-    formData.append("class_id", classId);
+    formData.append("class_id", class_id);
     formData.append("subject", subject);
     formData.append("message", message);
 
@@ -108,7 +108,7 @@ export default function Announcement() {
   useEffect(()=>{
     const fetchAnnouncment = async () => {
         try {
-            const response = await axios.get("http://localhost:8000/class/announcements", {
+            const response = await axios.get(`${API_URL}/class/announcements`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

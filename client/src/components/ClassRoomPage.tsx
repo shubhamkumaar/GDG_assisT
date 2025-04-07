@@ -70,10 +70,6 @@ export default function ClassRoomPage() {
 
   useEffect(() => {
     const fetchMaterial = async () => {
-      if (!classId) {
-        toast.error("Class ID not found");
-        return;
-      }
       try {
         const response = await axios.get(`${API_URL}/class/materials`, {
           headers: {
@@ -120,10 +116,7 @@ export default function ClassRoomPage() {
 
   useEffect(() => {
     const fetchStudents = async () => {
-      if (!classId) {
-        toast.error("Class ID not found");
-        return;
-      }
+
       try {
         const response = await axios.get(
           `${API_URL}/class/students`,

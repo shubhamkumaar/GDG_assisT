@@ -156,7 +156,7 @@ def save_images_ocr(ocr_response:OCRResponse,job_id:str,request_id:str="")->tupl
         with open(image_path, "wb") as buffer:
             buffer.write(base64.b64decode(image["image_base64"].split(',')[1]))
     
-    return f"{job_id}/{request_id}", images[-1]["image_name"]
+    return f"{job_id}/{request_id}", images[-1]["image_name"] if len(images)>0 else None
 
 
 def clean_ocr_response_mistral(ocr_response:OCRResponse)->str:
@@ -193,13 +193,15 @@ def ocr_answer_submission(file_url:str,job_id:str,request_id:str):
     # Remove the file after OCR response
     # os.unlink(file_path)
 
-    # clean response to include any extra images than there should be
-    last_image_n = re.findall(r'\d+', last_image)
-    split_last_image = last_image.split(last_image_n[0])
-    last_image_n = int(last_image_n[0])
-    # surely there are no more than 100 extra images :D
-    for i in range(1, last_image_n+100):
-        response.replace(f"![{split_last_image[0]}{i}{split_last_image[1]}", "")
+    # firstly check if there are any images in the response
+    if last_image is not None:
+        # clean response to include any extra images than there should be
+        last_image_n = re.findall(r'\d+', last_image)
+        split_last_image = last_image.split(last_image_n[0])
+        last_image_n = int(last_image_n[0])
+        # surely there are no more than 100 extra images :D
+        for i in range(1, last_image_n+100):
+            response.replace(f"![{split_last_image[0]}{i}{split_last_image[1]}", "")
 
     # also save the response as markdown file in the temp directory
     with open(f"{temp_dir}/response.md", "w") as f:

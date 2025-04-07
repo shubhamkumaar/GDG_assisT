@@ -41,11 +41,26 @@ export default function JoinClass() {
           },
         }
       );
-      console.log(response.data);
-      if (response.status === 200) {
+      console.log(response);
+      if (response.status === 201) {
         toast.success("Class joined successfully");
+        // after class is joined we get the class data
+        const response = await axios.get(
+          `${API_URL}/class/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+            params: {
+              class_id: classCode, // Ensure `className` has a valid value
+            },
+          },
+        );
+        const data = response.data;
+        console.log(data);
         dispatch(isJoiningClass(false));
-        navigate("/classroom", { state: data });
+        // navigate("/classroom", { state:data });
       }
     } catch (error) {
       toast.error("Failed to join class");

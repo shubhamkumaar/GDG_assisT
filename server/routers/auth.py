@@ -181,7 +181,6 @@ def verify_jwt_token(token: Annotated[str,Depends(oauth2_bearer)],db: db_depende
         if token in token_blacklist:
             raise HTTPException(status_code=401,detail="Token was revoked")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        # print(username)
         user = db.query(models.User).filter(models.User.email == payload.get('sub')).first()
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
