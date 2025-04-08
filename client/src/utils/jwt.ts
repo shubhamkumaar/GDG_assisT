@@ -9,14 +9,18 @@ export const getToken = () => {
   const expiry = jwtDecode(token).exp
   const now = new Date();
   if(!expiry) return null;
-  if (now.getTime() > expiry*1000) {
-    persistor.purge().then(() => {
-      localStorage.removeItem("persist:root");
-      window.location.reload();
-    });
-    
-    localStorage.clear();
+  if (now.getTime() > expiry * 1000) {
+    clearStorageAndReload();
     return null;
   }
   return token;
 };
+
+export const clearStorageAndReload = async () => {
+  await persistor.purge();
+  await persistor.flush(); 
+
+  localStorage.removeItem("persist:root");
+  localStorage.clear();
+  window.location.reload();
+}

@@ -228,7 +228,7 @@ export default function SignUpPage() {
           </div>
         </form>
 
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300" />
@@ -246,7 +246,7 @@ export default function SignUpPage() {
               onError={() => console.log("Google Login Failed")}
             />
           </div>
-        </div>
+        </div> */}
       </div>
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md flex justify-center">
         <div className="text-sm mb-0">

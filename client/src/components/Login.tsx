@@ -143,7 +143,7 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300" />
@@ -162,7 +162,7 @@ export default function LoginPage() {
               // redirectUri="http://localhost:5173"
             />
           </div>
-        </div>
+        </div> */}
       </div>
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md flex justify-center">
         <div className="text-sm mb-0">
