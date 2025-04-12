@@ -83,7 +83,7 @@ def ocr_response_gemini(file_path:str, purpose:str="submission")->str:
     response = chat_session.send_message("OCR the given pdf in a structured manner and organize it based on the page number."
                                          "If you find any diagrams or images, replace it with the text <Diagram>Text explaining content of diagram in a single short line</Diagram>"
                                          "Make sure to include explicitly any 'Question No.' such as 'Q.1','Q)1', 'Question 1', 'Ques.1', etc."
-                                         f"{"Make sure to include Max Marks if mentioned including, if not, assume it to be 10" if purpose=="question" else""}").text
+                                         "Make sure to include Max Marks if mentioned including, if not, assume it to be 10" if purpose=="question" else"").text
     
     return response
 
