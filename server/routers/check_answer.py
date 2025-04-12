@@ -54,7 +54,7 @@ def ocr_response_mistral(file_name:str, file_path:str):
     )    
     return ocr_response
 
-def ocr_response_gemini(file_path:str)->str:
+def ocr_response_gemini(file_path:str, purpose:str="submission")->str:
     gemini_client = genai.GenerativeModel(
                         model_name="gemini-2.0-flash",
                         generation_config=gemini_generation_config,
@@ -82,7 +82,8 @@ def ocr_response_gemini(file_path:str)->str:
     # get the response
     response = chat_session.send_message("OCR the given pdf in a structured manner and organize it based on the page number."
                                          "If you find any diagrams or images, replace it with the text <Diagram>Text explaining content of diagram in a single short line</Diagram>"
-                                         "Make sure to include explicitly any 'Question No.' such as 'Q.1','Q)1', 'Question 1', 'Ques.1', etc.").text
+                                         "Make sure to include explicitly any 'Question No.' such as 'Q.1','Q)1', 'Question 1', 'Ques.1', etc."
+                                         "Make sure to include Max Marks if mentioned including, if not, assume it to be 10" if purpose=="question" else "\n").text
     
     return response
 
@@ -101,7 +102,7 @@ You will need to merge the responses based on the below instructions:
     - Use the response from Engine 2 to find the relevant images and where they go.
     - Make sure to include *every* image from Engine 1 in the final response.
     - You will need to ensure that the images are correctly placed in the text content, to do this look for text before and after the image in Engine 1 and compare that to Engine 2 and place the image in the same location in the final response.
-    - Engine 2 might have diagrams in the form of <Diagram>Text explaining content of diagram in a single short line</Diagram>, this is only for your ease of understanding what goes where and should not be included in the final response, instead, replace it by including the images from Engine 1 in the correct markdown format.
+    - Engine 2 might have diagrams in the form of <Diagram>Text explaining content of diagram in a single short line</Diagram>, this is only for your ease of understanding what goes where and should not be included in the final response, instead, replace it by including the images from Engine 1 in the correct markdown format. If no such image is present for the diagram that maps from Engine 1, then just keep the text as it is.
 - The original responses are organized by page number, but your output needs to be organized by the question number. Understand the text content thoroughly to organize it correctly.
 - You can generally tell a question from the other using:
     - Whenever a question starts, there must be a question number.
@@ -111,6 +112,7 @@ You will need to merge the responses based on the below instructions:
 - Use h1 headers only for the question number. For the top header use h2. For parts inside a question use h3.
 - Do not ever use h1 headers `# ` for anything other than the question number, however important it may seem.
 - Only write the question number and its corresponding answer, dont actually make up the question.
+- Sometimes the student might have written the questions in a different order, so in that case, you will need to reorder the questions based on the question number.
 - Output in markdown format
 - Any header before the questions start should be added at the top of the response.
 """
