@@ -220,7 +220,7 @@ This project was developed for a hackathon. If you wish to contribute further, p
 *   Team Code Xtreme
 *   Project Link: [assisT](https://github.com/shubhamkumaar/GDG_assisT)
 *   Team Members:
-    *   [Shubham Kumar](https://github.com/shubhamkumaar)  
-    *   [Ritvik Anand](https://github.com/RitvikAnand583)
     *   [Divyansh Karan](https://github.com/DivyanshKaran)
     *   [Kanishak Sangwan](https://github.com/Kan1shak)
+    *   [Ritvik Anand](https://github.com/RitvikAnand583)
+    *   [Shubham Kumar](https://github.com/shubhamkumaar)  

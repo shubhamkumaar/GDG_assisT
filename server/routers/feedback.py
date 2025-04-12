@@ -134,6 +134,11 @@ def render_images_markdown(text:str,job_dir:str,parts:list)->list:
     # join the image paths with the job_dir
     image_paths = [f"{job_dir}/{image_path}" for image_path in image_paths]
 
+    # check if the path exists
+    image_paths = [
+        image_path for image_path in image_paths if os.path.exists(image_path)
+    ]
+
     files = [
         upload_to_gemini(image_path) 
         for image_path in image_paths
@@ -247,7 +252,7 @@ def generate_rubric(job_id:str)->str:
         - Criteria
         - Points
         - Description
-        - Max Points acording to the question if given, else 10
+        - Max Points acording to the question if given, else assume it to be 10
     - The total points should be 10 unless specified otherwise.
     - You should format your response in markdown format.
     - It might be the case that some questions have images with them, so in your final response include those images by using the markdown syntax for images. For example, lets say the image is named "image.png", then you should include it in your markdown response as ![Image](image.png)
@@ -270,7 +275,7 @@ def process_question_content_pdf(file_path:str, file_name:str, temp_dir:str, job
     # we convert the ocr response to markdown
     ocr_mistral = ocr_to_md(ocr_mistral)
     # ocr response from gemini
-    ocr_gemini = ocr_response_gemini(file_path)
+    ocr_gemini = ocr_response_gemini(file_path, purpose="question")
     # merge the ocr responses
     md = merge_ocr_responses(ocr_mistral, ocr_gemini)
     # save the markdown to a file
