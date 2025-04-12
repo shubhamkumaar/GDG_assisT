@@ -78,20 +78,7 @@ async def join_class(class_id: str, user:user_dependency, db: db_dependency) :
     db.commit()
     return {"message": "Joined class successfully"}
  
-# When any teacher signup using google oauth, is_teacher field is set to False
-# So, we need to update the is_teacher field to True
-@router.get("/update_isteacher",status_code=status.HTTP_201_CREATED)
-async def update_isteacher(user:user_dependency, db: db_dependency) :
-    if user is None:
-        raise HTTPException(status_code=404, detail="Authentication required")
-        
-    user = db.query(models.User).filter(models.User.id == user.id).first()
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    user.is_teacher = True
-    db.commit()
-    return {"message": "User updated successfully"}  
-  
+   
 #  Get the assignments which are not submitted by the student
 @router.get("/todo",status_code=status.HTTP_200_OK)
 async def get_todo(user:user_dependency, db: db_dependency) :

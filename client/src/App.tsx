@@ -18,6 +18,7 @@ import WorkingPage from "./components/WorkingPage";
 import Layout from "./Layout";
 import { RootState } from "./store/store";
 import ResultReview from "./components/ResultReview";
+import AuthCallback from "./components/AuthCallback";
 function App() {
   const ProtectedRoute = () => {
     const token = useSelector((state: RootState) => state.auth.token);
@@ -36,6 +37,7 @@ function App() {
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/auth/google/callback" element={<AuthCallback />} />
         </Route>
 
         {/* Root: Redirect to Dashboard or Login */}

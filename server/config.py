@@ -12,7 +12,6 @@ class Settings(BaseSettings):
     GOOGLE_APPLICATION_CREDENTIALS : str
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
+    FRONTEND_URL: str
+    GOOGLE_REDIRECT_URI: str
     model_config = SettingsConfigDict(env_file="server/.env")
-
-
-GOOGLE_REDIRECT_URI="http://localhost:8000/auth/google/callback"

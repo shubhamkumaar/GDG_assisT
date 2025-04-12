@@ -10,8 +10,6 @@ import {
 import { AppDispatch } from "../store/store";
 import {
   googleLogin,
-  // googleCallback,
-  // googleLogin,
   loginUser,
 } from "../store/auth/authSlice";
 import {
@@ -22,7 +20,6 @@ import {
 import { GoogleLogin } from "@react-oauth/google";
 import { Link } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_URL;
-
 
 export default function LoginPage() {
   const [username, setEmail] = useState("");
@@ -49,13 +46,15 @@ export default function LoginPage() {
     navigate("/");
   };
 
-  const handleGoogleLogin = async (response: any) => {
+  const handleGoogleLogin = async () => {
     // console.log("Logging in with Google");
     // dispatch(googleLogin());
-    console.log(response.credential);
-    if (response.credential) {
-      dispatch(googleLogin(response.credential));
-    }
+    // console.log(response.credential);
+    // if (response.credential) {
+    console.log("Logging in with Google");
+
+    dispatch(googleLogin({ name: "Google" }));
+    // }
   };
 
   return (
@@ -169,13 +168,21 @@ export default function LoginPage() {
           Don't have an account?
           <Link
             to="/signup"
-            className="font-medium text-blue-500 hover:text-blue-500 ml-1">
-          Sign up
+            className="font-medium text-blue-500 hover:text-blue-500 ml-1"
+          >
+            Sign up
           </Link>
-          </div>
-          <Link to={`${API_URL}/auth/google/login`}>
-          <button className="m-10 text-blue-400">Google</button>
-          </Link>
+        </div>
+        {/* <Link to={`${API_URL}/auth/google/login`}> */}
+        <button
+          onClick={() => {
+            window.location.href = `${API_URL}/auth/google/login`;
+          }}
+          className="m-10 text-blue-400"
+        >
+          Google
+        </button>
+        {/* </Link> */}
       </div>
     </div>
   );

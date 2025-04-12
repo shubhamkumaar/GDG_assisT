@@ -63,3 +63,18 @@ async def update_profile(user:user_dependency, db: db_dependency,name: str = Non
     db.commit()
     db.refresh(user)
     return {"user_id": user.id, "user_name": user.name, "user_email": user.email, "user_phone": user.phone, "is_teacher": user.is_teacher, "profile_pic": user.profile_pic}
+
+
+# When any teacher signup using google oauth, is_teacher field is set to False
+# So, we need to update the is_teacher field to True
+@router.get("/update_isteacher",status_code=status.HTTP_201_CREATED)
+async def update_isteacher(user:user_dependency, db: db_dependency) :
+    if user is None:
+        raise HTTPException(status_code=404, detail="Authentication required")
+        
+    user = db.query(models.User).filter(models.User.id == user.id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_teacher = True
+    db.commit()
+    return {"message": "User updated successfully"}  

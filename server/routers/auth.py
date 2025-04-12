@@ -37,6 +37,8 @@ ALGORITHM = Settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = Settings.ACCESS_TOKEN_EXPIRE_MINUTES
 GOOGLE_CLIENT_ID=Settings.GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET=Settings.GOOGLE_CLIENT_SECRET
+FRONTEND_URL = Settings.FRONTEND_URL
+GOOGLE_REDIRECT_URI = Settings.GOOGLE_REDIRECT_URI
 
 oauth = OAuth()
 
@@ -198,8 +200,8 @@ def verify_jwt_token(token: Annotated[str,Depends(oauth2_bearer)],db: db_depende
 @router.get("/google/login")
 async def google_login(request: Request):
     """Redirects the user to Google Authentication"""
-    redirect_uri = "http://localhost:8000/auth/google/callback"
-    frontend_url = "http://localhost:5173"
+    redirect_uri = GOOGLE_REDIRECT_URI
+    frontend_url = FRONTEND_URL
     request.session["login_redirect"] = frontend_url
     return await oauth.google.authorize_redirect(request, redirect_uri,prompt="consent")
 
@@ -253,15 +255,17 @@ async def google_callback(request: Request,db: db_dependency):
     # response.set_cookie(key="token", value=access_token)
     # response.set_cookie(key="user_name", value=user.name)
     
-    res_user = {"new_user":new_user,"name":name,"email":email,"picture":user_info['picture']}
+    res_user = {"name":name,"email":email,"picture":user_info['picture']}
     print(json.dumps(res_user))
     params = urlencode({
     "user": json.dumps(res_user),
     "token": access_token,
+    "new_user":new_user
     })
     print("Params",params)
-    redirect_url = f"{request.session.get('login_redirect', 'http://localhost:5173')}?{params}"
-    return RedirectResponse(url=redirect_url)
+    redirect_base = request.session.get("login_redirect", FRONTEND_URL)
+    # redirect_url = f"{request.session.get('login_redirect', 'http://localhost:5173')}?{params}"
+    return RedirectResponse(url=f"{redirect_base}/auth/google/callback?{params}")
 @router.post("/protected")
 async def protected_route(request: Request, user: dict = Depends(verify_jwt_token)):
     return {"Message": "you have access","user": user}

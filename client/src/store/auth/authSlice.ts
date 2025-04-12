@@ -3,7 +3,7 @@ import api from "../../api/api";
 import { AuthState } from "./types";
 const userData = localStorage.getItem("user");
 const token = localStorage.getItem("token");
-
+import { useEffect } from "react";
 const initialState: AuthState = {
   user: userData && userData !== "undefined" ? JSON.parse(userData) : null,
   error: null,
@@ -62,14 +62,23 @@ export const signupUser = createAsyncThunk(
 );
 
 export const googleLogin = createAsyncThunk(
-  "auth/googlelogin",
-  async (googleToken: string, { rejectWithValue }) => {
+  "/auth/google/login",
+  async (userData:{name:string;},{ rejectWithValue }) => {
     try {
-      const response = await api.get("/auth/google/login", {
-        headers: {
-          Authorization: `Bearer ${googleToken}`,
-        }
-      });
+      console.log("Slice call");
+      const response = await api.get("/auth/google/login");
+      
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const user = params.get("user");
+        const token = params.get("token");
+    
+        // Store in localStorage
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("token", token);
+        // Redirect to homepage
+        // navigate("/");
+      }, []);
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.access_token);
       return response.data;
@@ -79,22 +88,22 @@ export const googleLogin = createAsyncThunk(
   }
 );
 
-export const googleCallback = createAsyncThunk(
-  "auth/googleCallback",
-  async (code: string, { rejectWithValue }) => {
-    try {
-      const response = await api.get(`/auth/google/callback?code=${code}`);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      localStorage.setItem("token", response.data.access_token);
-      console.log(response);
-      return response.data;
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message || "Google login failed"
-      );
-    }
-  }
-);
+// export const googleCallback = createAsyncThunk(
+//   "auth/googleCallback",
+//   async (code: string, { rejectWithValue }) => {
+//     try {
+//       const response = await api.get(`/auth/google/callback?code=${code}`);
+//       localStorage.setItem("user", JSON.stringify(response.data.user));
+//       localStorage.setItem("token", response.data.access_token);
+//       console.log(response);
+//       return response.data;
+//     } catch (err: any) {
+//       return rejectWithValue(
+//         err.response?.data?.message || "Google login failed"
+//       );
+//     }
+//   }
+// );
 
 export const logoutUser = createAsyncThunk("auth/logout", async () => {
   await api.post("/auth/logout");
@@ -105,7 +114,20 @@ export const logoutUser = createAsyncThunk("auth/logout", async () => {
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {},
+  reducers: {
+    setToken: (state, action) => {
+      state.token = action.payload;
+      localStorage.setItem("token", action.payload); // Store token in localStorage
+    },
+    clearToken: (state) => {
+      state.token = null;
+      localStorage.removeItem("token"); // Remove token from localStorage
+    },
+    setUser:(state,action) =>{
+      state.user = action.payload,
+      localStorage.setItem("user",action.payload)
+    }
+  },
   extraReducers: (builder) => {
     builder
       // Login
@@ -142,15 +164,15 @@ const authSlice = createSlice({
       })
 
       // Google Callback
-      .addCase(googleCallback.fulfilled, (state, action) => {
-        state.user = action.payload.user;
-        state.token = action.payload.access_token;
-        state.isAuthenticated = true;
-      })
+      // .addCase(googleCallback.fulfilled, (state, action) => {
+      //   state.user = action.payload.user;
+      //   state.token = action.payload.access_token;
+      //   state.isAuthenticated = true;
+      // })
 
-      .addCase(googleCallback.rejected, (state, action) => {
-        state.error = action.payload as string;
-      })
+      // .addCase(googleCallback.rejected, (state, action) => {
+      //   state.error = action.payload as string;
+      // })
 
       // Logout
       .addCase(logoutUser.fulfilled, (state) => {
@@ -161,5 +183,6 @@ const authSlice = createSlice({
   },
 });
 
+export const { setToken, clearToken, setUser } = authSlice.actions;
 const authReducer = authSlice.reducer;
 export default authReducer;
