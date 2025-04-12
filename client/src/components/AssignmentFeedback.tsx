@@ -118,42 +118,45 @@ export default function AssignmentFeedback() {
                                     </div>
                                 </div>
 
-                                <div className="mb-6">
-                                    <h4 className="text-md font-semibold text-[#545e79] mb-2">Strengths</h4>
-                                    <div className="space-y-2">
-                                        {item.strengths.map((strength, index) => (
-                                            <p 
-                                                key={index}
-                                                className="w-full text-[#8591ad] p-2 bg-gray-50 rounded"
-                                            >
-                                                • {strength}
-                                            </p>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="mb-6">
-                                    <h4 className="text-md font-semibold text-[#545e79] mb-2">Areas for Improvement</h4>
-                                    <div className="space-y-2">
-                                        {Array.isArray(item.areas_of_improvement) ? (
-                                            <>
-                                            {item.areas_of_improvement.map((area, index) => (
-                                                <p
+                                {item.strengths?.length > 0 && (
+                                    <div className="mb-6">
+                                        <h4 className="text-md font-semibold text-[#545e79] mb-2">Strengths</h4>
+                                        <div className="space-y-2">
+                                            {item.strengths.map((strength, index) => (
+                                                <p 
                                                     key={index}
                                                     className="w-full text-[#8591ad] p-2 bg-gray-50 rounded"
                                                 >
-                                                    • {area}
+                                                    • {strength}
                                                 </p>
                                             ))}
-                                            </>
-                                        ) : (
-                                        <p className="w-full text-[#8591ad] p-2 bg-gray-50 rounded">
-                                            {item.areas_of_improvement}
-                                        </p>
-                                        )}
+                                        </div>
                                     </div>
-                                </div>
-
+                                )}
+                                
+                                {item.areas_of_improvement?.length > 0 && (
+                                    <div className="mb-6">
+                                        <h4 className="text-md font-semibold text-[#545e79] mb-2">Areas for Improvement</h4>
+                                        <div className="space-y-2">
+                                            {Array.isArray(item.areas_of_improvement) ? (
+                                                <>
+                                                {item.areas_of_improvement.map((area, index) => (
+                                                    <p
+                                                        key={index}
+                                                        className="w-full text-[#8591ad] p-2 bg-gray-50 rounded"
+                                                    >
+                                                        • {area}
+                                                    </p>
+                                                ))}
+                                                </>
+                                            ) : (
+                                            <p className="w-full text-[#8591ad] p-2 bg-gray-50 rounded">
+                                                {item.areas_of_improvement}
+                                            </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
                                     <span className="text-sm font-semibold text-[#8591ad]">
                                         Rubric Score: {item.score_summary.rubric_score}
@@ -185,3 +188,5 @@ export default function AssignmentFeedback() {
         </div>
     );
 }
+
+//AssignmentFeedback

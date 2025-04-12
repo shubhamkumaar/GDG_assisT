@@ -50,7 +50,7 @@ export default function FeedbackCard(
           <h4 className="text-md font-semibold text-[#545e79] mb-2">Strengths</h4>
           {Array.isArray(strengths) ? (
             <ul className="list-disc pl-5 space-y-2">
-              {strengths.map((strength, index) => (
+              {(strengths|| []).map((strength, index) => (
                 <li key={index} className="text-[#8591ad]">
                   {strength}
                 </li>
@@ -65,7 +65,7 @@ export default function FeedbackCard(
           <h4 className="text-md font-semibold text-[#545e79] mb-2">Areas for Improvement</h4>
           {Array.isArray(areasOfImprovement) ? (
             <ul className="list-disc pl-5 space-y-2">
-              {areasOfImprovement.map((item, index) => (
+              {(areasOfImprovement || []).map((item, index) => (
                 <li key={index} className="text-[#8591ad]">
                   {item}
                 </li>
