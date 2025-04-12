@@ -173,6 +173,9 @@ export default function LoginPage() {
           Sign up
           </Link>
           </div>
+          <Link to={`${API_URL}/auth/google/login`}>
+          <button className="m-10 text-blue-400">Google</button>
+          </Link>
       </div>
     </div>
   );

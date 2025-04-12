@@ -134,6 +134,15 @@ def render_images_markdown(text:str,job_dir:str,parts:list)->list:
     # join the image paths with the job_dir
     image_paths = [f"{job_dir}/{image_path}" for image_path in image_paths]
 
+    skip_list = []
+
+    # check if the path exists
+    for idx, image_path in enumerate(image_paths):
+        if not os.path.exists(image_path):
+            # we delete the image path fro the list and add the idx to skip list
+            skip_list.append(idx)
+            image_paths.remove(image_path)
+
     files = [
         upload_to_gemini(image_path) 
         for image_path in image_paths
@@ -143,6 +152,10 @@ def render_images_markdown(text:str,job_dir:str,parts:list)->list:
     pattern = re.compile(r'(<img\b[^>]+>|!\[[^\]]*\]\([^)]*\))')
 
     for match in pattern.finditer(text):
+        # skip if the match is in the skip list
+        if file_idx in skip_list:
+            file_idx += 1
+            continue
         start = match.start()
         end = match.end()
         
@@ -221,8 +234,8 @@ def generate_rubric(job_id:str)->str:
 
 
     gemini_client = genai.GenerativeModel(
-                        model_name="gemini-2.0-flash-thinking-exp-01-21",
-                        generation_config=gemini_generation_config_thinking,
+                        model_name="gemini-2.5-pro-exp-03-25",
+                        generation_config=gemini_generation_config,
                         safety_settings=safety_settings
     )
     
@@ -247,7 +260,7 @@ def generate_rubric(job_id:str)->str:
         - Criteria
         - Points
         - Description
-        - Max Points acording to the question if given, else 10
+        - Max Points acording to the question if given, else assume it to be 10
     - The total points should be 10 unless specified otherwise.
     - You should format your response in markdown format.
     - It might be the case that some questions have images with them, so in your final response include those images by using the markdown syntax for images. For example, lets say the image is named "image.png", then you should include it in your markdown response as ![Image](image.png)
@@ -270,7 +283,7 @@ def process_question_content_pdf(file_path:str, file_name:str, temp_dir:str, job
     # we convert the ocr response to markdown
     ocr_mistral = ocr_to_md(ocr_mistral)
     # ocr response from gemini
-    ocr_gemini = ocr_response_gemini(file_path)
+    ocr_gemini = ocr_response_gemini(file_path, purpose="question")
     # merge the ocr responses
     md = merge_ocr_responses(ocr_mistral, ocr_gemini)
     # save the markdown to a file

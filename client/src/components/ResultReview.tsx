@@ -219,6 +219,7 @@ export default function ResultReview() {
                                     />
                                 </div>
 
+                                {item.grading_analysis?.length > 0 && (
                                 <div className="mb-6">
                                     <h4 className="text-md font-semibold text-[#545e79] mb-3">Grading Analysis</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -253,7 +254,9 @@ export default function ResultReview() {
                                         ))}
                                     </div>
                                 </div>
+                                )}
 
+                                {item.strengths?.length > 0 && (
                                 <div className="mb-6">
                                     <h4 className="text-md font-semibold text-[#545e79] mb-2">Strengths</h4>
                                     <div className="space-y-2">
@@ -273,7 +276,9 @@ export default function ResultReview() {
                                         ))}
                                     </div>
                                 </div>
+                                )}
 
+                                {item.areas_of_improvement?.length > 0 && (
                                 <div className="mb-6">
                                     <h4 className="text-md font-semibold text-[#545e79] mb-2">Areas for Improvement</h4>
                                     <div className="space-y-2">
@@ -309,6 +314,7 @@ export default function ResultReview() {
                                         )}
                                     </div>
                                 </div>
+                                )}
 
                                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
                                     <span className="text-sm font-semibold text-[#8591ad]">

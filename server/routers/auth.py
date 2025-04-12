@@ -16,6 +16,7 @@ from authlib.integrations.starlette_client import OAuth
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from typing import Optional
+from urllib.parse import urlencode
 token_blacklist = set()
 
 router = APIRouter(
@@ -197,7 +198,9 @@ def verify_jwt_token(token: Annotated[str,Depends(oauth2_bearer)],db: db_depende
 async def google_login(request: Request):
     """Redirects the user to Google Authentication"""
     redirect_uri = "http://localhost:8000/auth/google/callback"
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+    frontend_url = "http://localhost:5173"
+    request.session["login_redirect"] = frontend_url
+    return await oauth.google.authorize_redirect(request, redirect_uri,prompt="consent")
 
 # Changed it to get for testing
 @router.get("/google/callback")
@@ -244,8 +247,16 @@ async def google_callback(request: Request,db: db_dependency):
     access_token = create_access_token(
         email, user.id, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer","user":{"new_user":new_user,"name":name,"email":email,"picture":user_info['picture']}, "message": "Login Successful with Google"}
-
+    # response = JSONResponse(content={"access_token": access_token, "token_type": "bearer","user":{"new_user":new_user,"name":name,"email":email,"picture":user_info['picture']}, "message": "Login Successful with Google"})
+    # response.set_cookie(key="user_id", value=str(user.id))
+    # response.set_cookie(key="token", value=access_token)
+    # response.set_cookie(key="user_name", value=user.name)
+    params = urlencode({
+    "user": user,
+    "token": access_token,
+})
+    redirect_url = f"{request.session.get('login_redirect', 'http://localhost:5173')}?{params}"
+    return RedirectResponse(url=redirect_url)
 @router.post("/protected")
 async def protected_route(request: Request, user: dict = Depends(verify_jwt_token)):
     return {"Message": "you have access","user": user}
