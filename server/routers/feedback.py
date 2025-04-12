@@ -234,8 +234,8 @@ def generate_rubric(job_id:str)->str:
 
 
     gemini_client = genai.GenerativeModel(
-                        model_name="gemini-2.0-flash-thinking-exp-01-21",
-                        generation_config=gemini_generation_config_thinking,
+                        model_name="gemini-2.5-pro-preview-03-25",
+                        generation_config=gemini_generation_config,
                         safety_settings=safety_settings
     )
     
