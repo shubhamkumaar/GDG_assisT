@@ -79,8 +79,11 @@ export default function JoinClass() {
           </h2>
 
           <div className="space-y-4">
+
             <div className="space-y-2">
+              
               <label className="text-sm font-medium sr-only">Class Code</label>
+
               <input
                 value={classCode}
                 onChange={(e) => setClassCode(e.target.value)}
@@ -89,11 +92,11 @@ export default function JoinClass() {
                 className="w-full px-4 py-3 border-2 border-[#545E79] rounded-lg focus:ring-2 focus:ring-[#545E79] focus:outline-none transition-all duration-200"
               />
             </div>
+
             <div
               onClick={joinClass}
               className="w-full py-3 px-4 font-semibold rounded-lg bg-[#545E79] text-[#F2F4F8] text-center hover:scale-[1.02] transform transition-all duration-200 active:scale-95
-                            cursor-pointer"
-            >
+              cursor-pointer">
               Join Now
             </div>
           </div>

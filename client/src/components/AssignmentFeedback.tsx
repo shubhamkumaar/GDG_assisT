@@ -15,8 +15,9 @@ export default function AssignmentFeedback() {
         score: 0,
         max_score: 0,
         summary_bullets: [],
-        detailed_feedback: []
+        detailed_feedback: [],
     });
+
     const [expandedItems, setExpandedItems] = useState([]);
 
     const token = getToken();
@@ -35,6 +36,7 @@ export default function AssignmentFeedback() {
                         submission_id: submission_id,
                     }
                 });
+                console.log(response.data);
                 setFeedbackData(response.data);
             } catch (error) {
                 console.error("Error fetching feedback:", error);
@@ -49,6 +51,19 @@ export default function AssignmentFeedback() {
                 ? prev.filter(id => id !== questionId) 
                 : [...prev, questionId]
         );
+    };
+
+    const processResourceText = (text) => {
+ 
+        const match = text.match(/^([^:]+):\s*(.*)/);
+        const titlePart = match ? match[1] : '';
+        const description = match ? match[2] : text;
+
+        const processedDescription = description.replace(
+            /\[([^\]]+)\]\(([^)]+)\)/g,
+            '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-600">$1</a>'
+        );
+        return { titlePart, processedDescription };
     };
 
     const dispatch = useDispatch();
@@ -80,8 +95,8 @@ export default function AssignmentFeedback() {
                         <div
                             key={item.question_id}
                             className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 mb-6 cursor-pointer ${isExpanded ? 'border-l-4 border-[#545e79]' : ''}`}
-                            onClick={() => toggleExpand(item.question_id)}
-                        >
+                            onClick={() => toggleExpand(item.question_id)}>
+                                
                             <div className="flex justify-between items-center p-6">
                                 <h3 className="text-lg font-bold text-[#8591ad]">Question {item.question_id}</h3>
                                 <div className="text-green-400 text-sm font-bold">
@@ -140,14 +155,19 @@ export default function AssignmentFeedback() {
                                         <div className="space-y-2">
                                             {Array.isArray(item.areas_of_improvement) ? (
                                                 <>
-                                                {item.areas_of_improvement.map((area, index) => (
-                                                    <p
-                                                        key={index}
-                                                        className="w-full text-[#8591ad] p-2 bg-gray-50 rounded"
-                                                    >
-                                                        • {area}
-                                                    </p>
-                                                ))}
+                                                {item.areas_of_improvement.map((area, index) => {
+                                                    const { titlePart, processedDescription } = processResourceText(area);
+                                                    
+                                                    return (
+                                                        <li
+                                                            key={index}
+                                                            className="w-full text-[#8591ad] p-2 bg-gray-50 rounded"
+                                                        >
+                                                            <strong>{titlePart}:</strong>{" "}
+                                                            <span dangerouslySetInnerHTML={{ __html: processedDescription }} />
+                                                        </li>
+                                                    );
+                                                })}
                                                 </>
                                             ) : (
                                             <p className="w-full text-[#8591ad] p-2 bg-gray-50 rounded">
@@ -157,6 +177,35 @@ export default function AssignmentFeedback() {
                                         </div>
                                     </div>
                                 )}
+
+                                {item.targeted_resources?.length > 0 && (
+                                    <div className="mb-6">
+                                        <h4 className="text-md font-semibold text-[#545e79] mb-2">Targeted Resources</h4>
+                                        <div className="space-y-2">
+                                            {Array.isArray(item.targeted_resources) ? (
+                                                <>
+                                                {item.targeted_resources.map((area, index) => {
+                                                    const { titlePart, processedDescription } = processResourceText(area);
+                                                    return (
+                                                        <li
+                                                            key={index}
+                                                            className="w-full text-[#8591ad] p-2 bg-gray-50 rounded"
+                                                        >
+                                                            <strong>{titlePart}:</strong>{" "}
+                                                            <span dangerouslySetInnerHTML={{ __html: processedDescription }} />
+                                                        </li>
+                                                    );
+                                                })}
+                                                </>
+                                            ) : (
+                                            <p className="w-full text-[#8591ad] p-2 bg-gray-50 rounded">
+                                                {item.areas_of_improvement}
+                                            </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
                                     <span className="text-sm font-semibold text-[#8591ad]">
                                         Rubric Score: {item.score_summary.rubric_score}
@@ -166,6 +215,7 @@ export default function AssignmentFeedback() {
                                     </span>
                                 </div>
                             </div>
+
                         </div>
                     );
                 })}
