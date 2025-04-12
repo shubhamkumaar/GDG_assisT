@@ -134,10 +134,14 @@ def render_images_markdown(text:str,job_dir:str,parts:list)->list:
     # join the image paths with the job_dir
     image_paths = [f"{job_dir}/{image_path}" for image_path in image_paths]
 
+    skip_list = []
+
     # check if the path exists
-    image_paths = [
-        image_path for image_path in image_paths if os.path.exists(image_path)
-    ]
+    for idx, image_path in enumerate(image_paths):
+        if not os.path.exists(image_path):
+            # we delete the image path fro the list and add the idx to skip list
+            skip_list.append(idx)
+            image_paths.remove(image_path)
 
     files = [
         upload_to_gemini(image_path) 
@@ -148,6 +152,10 @@ def render_images_markdown(text:str,job_dir:str,parts:list)->list:
     pattern = re.compile(r'(<img\b[^>]+>|!\[[^\]]*\]\([^)]*\))')
 
     for match in pattern.finditer(text):
+        # skip if the match is in the skip list
+        if file_idx in skip_list:
+            file_idx += 1
+            continue
         start = match.start()
         end = match.end()
         
