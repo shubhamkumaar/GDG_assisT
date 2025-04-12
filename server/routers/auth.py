@@ -17,6 +17,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from typing import Optional
 from urllib.parse import urlencode
+import json
 token_blacklist = set()
 
 router = APIRouter(
@@ -251,10 +252,14 @@ async def google_callback(request: Request,db: db_dependency):
     # response.set_cookie(key="user_id", value=str(user.id))
     # response.set_cookie(key="token", value=access_token)
     # response.set_cookie(key="user_name", value=user.name)
+    
+    res_user = {"new_user":new_user,"name":name,"email":email,"picture":user_info['picture']}
+    print(json.dumps(res_user))
     params = urlencode({
-    "user": user,
+    "user": json.dumps(res_user),
     "token": access_token,
-})
+    })
+    print("Params",params)
     redirect_url = f"{request.session.get('login_redirect', 'http://localhost:5173')}?{params}"
     return RedirectResponse(url=redirect_url)
 @router.post("/protected")
