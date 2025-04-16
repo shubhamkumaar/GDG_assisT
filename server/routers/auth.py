@@ -255,7 +255,7 @@ async def google_callback(request: Request,db: db_dependency):
     # response.set_cookie(key="token", value=access_token)
     # response.set_cookie(key="user_name", value=user.name)
     
-    res_user = {"name":name,"email":email,"picture":user_info['picture']}
+    res_user = {"name":name,"email":email,"is_teacher":user.is_teacher,"picture":user_info['picture']}
     print(json.dumps(res_user))
     params = urlencode({
     "user": json.dumps(res_user),

@@ -12,6 +12,9 @@ const initialState: AuthState = {
   is_teacher: userData && userData !== "undefined" ? JSON.parse(userData).is_teacher : false,
 };
 
+// console.log(initialState.user);
+console.log(initialState.is_teacher);
+
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (
@@ -65,7 +68,6 @@ export const googleLogin = createAsyncThunk(
   "/auth/google/login",
   async (userData:{name:string;},{ rejectWithValue }) => {
     try {
-      console.log("Slice call");
       const response = await api.get("/auth/google/login");
       
       useEffect(() => {
@@ -117,15 +119,16 @@ const authSlice = createSlice({
   reducers: {
     setToken: (state, action) => {
       state.token = action.payload;
+      state.isAuthenticated = true;
       localStorage.setItem("token", action.payload); // Store token in localStorage
-    },
-    clearToken: (state) => {
-      state.token = null;
-      localStorage.removeItem("token"); // Remove token from localStorage
     },
     setUser:(state,action) =>{
       state.user = action.payload,
+      state.isAuthenticated = true;
       localStorage.setItem("user",action.payload)
+    },
+    setTeacher:(state,action) =>{      
+      state.is_teacher = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -183,6 +186,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { setToken, clearToken, setUser } = authSlice.actions;
+export const { setToken, setUser, setTeacher } = authSlice.actions;
 const authReducer = authSlice.reducer;
 export default authReducer;
