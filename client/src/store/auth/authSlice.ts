@@ -12,9 +12,6 @@ const initialState: AuthState = {
   is_teacher: userData && userData !== "undefined" ? JSON.parse(userData).is_teacher : false,
 };
 
-// console.log(initialState.user);
-console.log(initialState.is_teacher);
-
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (
@@ -90,22 +87,6 @@ export const googleLogin = createAsyncThunk(
   }
 );
 
-// export const googleCallback = createAsyncThunk(
-//   "auth/googleCallback",
-//   async (code: string, { rejectWithValue }) => {
-//     try {
-//       const response = await api.get(`/auth/google/callback?code=${code}`);
-//       localStorage.setItem("user", JSON.stringify(response.data.user));
-//       localStorage.setItem("token", response.data.access_token);
-//       console.log(response);
-//       return response.data;
-//     } catch (err: any) {
-//       return rejectWithValue(
-//         err.response?.data?.message || "Google login failed"
-//       );
-//     }
-//   }
-// );
 
 export const logoutUser = createAsyncThunk("auth/logout", async () => {
   await api.post("/auth/logout");
@@ -123,12 +104,14 @@ const authSlice = createSlice({
       localStorage.setItem("token", action.payload); // Store token in localStorage
     },
     setUser:(state,action) =>{
-      state.user = action.payload,
+      state.user = JSON.parse(action.payload),
       state.isAuthenticated = true;
       localStorage.setItem("user",action.payload)
     },
     setTeacher:(state,action) =>{      
-      state.is_teacher = action.payload;
+      console.log("setTeacher",action.payload);
+      state.user.is_teacher = action.payload as boolean;
+      state.is_teacher = action.payload as boolean;
     }
   },
   extraReducers: (builder) => {

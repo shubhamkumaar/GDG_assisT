@@ -12,8 +12,8 @@ const AuthCallback = () => {
     const token = params.get("token");
     const user = params.get("user");
 
-    const new_user = params.get("new_user");
-
+    const new_user = params.get("new_user");  
+    
     if (token) {
       dispatch(setToken(token));
       dispatch(setUser(user));

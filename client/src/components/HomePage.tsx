@@ -19,7 +19,13 @@ export default function HomePage() {
         },
       });
 
-      console.log("Teacher status updated:", response.data);
+      const userData = localStorage.getItem("user");
+      const parsedUserData = userData ? JSON.parse(userData) : null;
+      if (parsedUserData) {
+        parsedUserData.is_teacher = true;
+        localStorage.setItem("user", JSON.stringify(parsedUserData));
+      }
+    
       dispatch(setTeacher(true));
       toast.success("You are a teacher now");
     } catch (error) {

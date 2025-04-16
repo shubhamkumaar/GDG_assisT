@@ -8,10 +8,7 @@ import {
   // useSelector
 } from "react-redux";
 import { AppDispatch } from "../store/store";
-import {
-  googleLogin,
-  loginUser,
-} from "../store/auth/authSlice";
+import { googleLogin, loginUser } from "../store/auth/authSlice";
 import {
   useNavigate,
   // useSearchParams
@@ -142,7 +139,7 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-         <div className="mt-6">
+        <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300" />
@@ -154,22 +151,16 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="mt-6 flex justify-center">
-            {/* <GoogleLogin
-              // clientId="564727465848-lfgrau28p1p9mp1tf0umv73ua9r9behi.apps.googleusercontent.com"
-              onSuccess={handleGoogleLogin}
-              onError={() => console.log("Google Login Failed")}
-              // redirectUri="http://localhost:5173"
-            /> */}
-            <button
-          onClick={() => {
-            window.location.href = `${API_URL}/auth/google/login`;
-          }}
-          className= "w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Google
-        </button>
+            <div
+              onClick={() => {
+                window.location.href = `${API_URL}/auth/google/login`;
+              }}
+              className="w-[70%] flex justify-center py-2 px-4 hover:bg-gray-200"
+            >
+              <img className="w-full" src="/google_btn.svg" alt="" />
+            </div>
           </div>
-        </div> 
+        </div>
       </div>
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md flex justify-center">
         <div className="text-sm mb-0">

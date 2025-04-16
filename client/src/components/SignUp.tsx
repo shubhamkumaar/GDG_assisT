@@ -5,7 +5,6 @@ import { googleLogin, signupUser } from "../store/auth/authSlice";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../store/store";
 import { useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SignUpPage() {
@@ -228,25 +227,28 @@ export default function SignUpPage() {
           </div>
         </form>
 
-        {/* <div className="mt-6">
+        <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-white text-gray-500">
-                Or sign up with
+                Or continue with
               </span>
             </div>
           </div>
-
           <div className="mt-6 flex justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleLogin}
-              onError={() => console.log("Google Login Failed")}
-            />
+            <div
+              onClick={() => {
+                window.location.href = `${API_URL}/auth/google/login`;
+              }}
+              className="w-[70%] flex justify-center py-2 px-4 hover:bg-gray-200"
+            >
+              <img className="w-full" src="/google_btn.svg" alt="" />
+            </div>
           </div>
-        </div> */}
+        </div>
       </div>
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md flex justify-center">
         <div className="text-sm mb-0">
